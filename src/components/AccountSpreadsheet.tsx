@@ -12,22 +12,29 @@ export interface AccountData {
 
 const COL_KEYS: (keyof AccountData)[] = ["userId", "userName", "password"];
 
-export default function AccountSpreadsheet() {
+export default function AccountSpreadsheet(props: {
+  onDataChange?: (teacher: AccountData[], student: AccountData[]) => void;
+}) {
+  const { onDataChange } = props;
+
   // keep two separate lists: teacher and student. Role column is kept in data
   // but will not be shown in the grid (user asked to remove the role column).
   const INITIAL_TEACHER: AccountData[] = [
     { id: "t-1", userId: "", userName: "", password: "", role: "teacher" },
-    { id: "t-2", userId: "", userName: "", password: "", role: "teacher" },
   ];
   const INITIAL_STUDENT: AccountData[] = [
     { id: "s-1", userId: "", userName: "", password: "", role: "student" },
-    { id: "s-2", userId: "", userName: "", password: "", role: "student" },
   ];
 
   const [teacherAccounts, setTeacherAccounts] =
     useState<AccountData[]>(INITIAL_TEACHER);
   const [studentAccounts, setStudentAccounts] =
     useState<AccountData[]>(INITIAL_STUDENT);
+
+  // notify parent when data changes
+  useEffect(() => {
+    onDataChange?.(teacherAccounts, studentAccounts);
+  }, [teacherAccounts, studentAccounts, onDataChange]);
 
   // base columns (role column intentionally omitted)
   const baseColumns = [
@@ -51,9 +58,6 @@ export default function AccountSpreadsheet() {
   const focusedRoleRef = useRef<"teacher" | "student" | null>(null);
 
   // handle paste from Excel/Sheets (TSV) at grid level
-  // We'll rely on a document-level paste handler that reads the currently
-  // focused cell refs (set from input focus handlers) and writes into the
-  // appropriate rows setter. This avoids adding per-input paste handlers.
   useEffect(() => {
     function handler(e: ClipboardEvent) {
       const focused = focusedRoleRef.current;
@@ -135,6 +139,7 @@ export default function AccountSpreadsheet() {
     setRows: React.Dispatch<React.SetStateAction<AccountData[]>>;
   }) {
     const { accountRole, rows, setRows } = props;
+
     const addRow = useCallback(() => {
       if (accountRole === "teacher") {
         const id = `t-${teacherCounter.current++}`;
@@ -233,9 +238,6 @@ export default function AccountSpreadsheet() {
                           else studentSelectedRef.current = target;
                           focusedRoleRef.current = accountRole;
                         }}
-                        // allow users to paste directly into the input; the document paste
-                        // handler will read clipboard and apply multi-cell paste starting
-                        // from this focused cell.
                         onPaste={() => {
                           /* noop - global handler handles multi-cell paste */
                         }}
@@ -270,11 +272,6 @@ export default function AccountSpreadsheet() {
       </h2>
 
       <div className="overflow-x-auto">
-        <div className="px-4 py-2 text-sm text-gray-500">
-          貼り付けのテスト: 先にセルをクリックして選択し、Excel からコピー →
-          この表で貼り付け（Ctrl/Cmd+V）してください。
-        </div>
-
         <RoleGrid
           accountRole="teacher"
           rows={teacherAccounts}

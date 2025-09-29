@@ -1,5 +1,4 @@
-/* react-data-grid styles */
-@import "react-data-grid/lib/styles.css";
+/* removed react-data-grid global import (no longer used) */
 
 @tailwind base;
 @tailwind components;
