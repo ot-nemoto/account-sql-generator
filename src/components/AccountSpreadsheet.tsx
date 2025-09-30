@@ -132,6 +132,31 @@ export default function AccountSpreadsheet(props: {
   const teacherCounter = useRef(teacherAccounts.length + 1);
   const studentCounter = useRef(studentAccounts.length + 1);
 
+  // Keep counters in sync with the highest numeric id present in each list.
+  // This prevents duplicate ids when rows are added via paste (which may
+  // append ids based on existing max) or when rows are removed.
+  useEffect(() => {
+    const max = teacherAccounts.length
+      ? Math.max(
+          ...teacherAccounts.map(
+            (a) => parseInt(a.id.replace(/[^0-9]/g, ""), 10) || 0,
+          ),
+        )
+      : 0;
+    teacherCounter.current = max + 1;
+  }, [teacherAccounts]);
+
+  useEffect(() => {
+    const max = studentAccounts.length
+      ? Math.max(
+          ...studentAccounts.map(
+            (a) => parseInt(a.id.replace(/[^0-9]/g, ""), 10) || 0,
+          ),
+        )
+      : 0;
+    studentCounter.current = max + 1;
+  }, [studentAccounts]);
+
   // reusable grid component configured per role
   function RoleGrid(props: {
     accountRole: "teacher" | "student";
