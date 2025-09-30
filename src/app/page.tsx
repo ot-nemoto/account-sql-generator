@@ -21,6 +21,8 @@ export default function Home() {
   const [studentRows, setStudentRows] = useState<AccountData[]>([]);
   const [generatedSQL, setGeneratedSQL] = useState("");
   const [generatedMemberSQL, setGeneratedMemberSQL] = useState("");
+  const [copiedUsers, setCopiedUsers] = useState(false);
+  const [copiedMembers, setCopiedMembers] = useState(false);
 
   const handleDataChange = (teacher: AccountData[], student: AccountData[]) => {
     setTeacherRows(teacher);
@@ -87,6 +89,25 @@ export default function Home() {
     });
 
     setGeneratedMemberSQL(membersSql || "-- No members found");
+  };
+
+  const copyToClipboard = async (text: string, which: "users" | "members") => {
+    try {
+      await navigator.clipboard.writeText(text || "");
+      if (which === "users") {
+        setCopiedUsers(true);
+        setTimeout(() => setCopiedUsers(false), 2000);
+      } else {
+        setCopiedMembers(true);
+        setTimeout(() => setCopiedMembers(false), 2000);
+      }
+    } catch (err) {
+      // best-effort: log and do nothing else
+      // clipboard might be unavailable in some environments
+      // fallback could be implemented if needed
+      // eslint-disable-next-line no-console
+      console.error("copy failed", err);
+    }
   };
 
   // no custom uppercase processing — let sql-formatter decide
@@ -223,6 +244,20 @@ export default function Home() {
 
       <div className="max-w-7xl mx-auto mt-6">
         <div className="bg-white rounded-lg border p-4">
+          <div className="flex items-start justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => copyToClipboard(generatedSQL, "users")}
+                className="px-3 py-1 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                コピー
+              </button>
+              {copiedUsers && (
+                <div className="text-sm text-green-600">コピーしました</div>
+              )}
+            </div>
+          </div>
           <pre className="whitespace-pre-wrap text-sm bg-gray-50 p-3 rounded h-64 overflow-auto">
             {generatedSQL}
           </pre>
@@ -231,6 +266,20 @@ export default function Home() {
 
       <div className="max-w-7xl mx-auto mt-6">
         <div className="bg-white rounded-lg border p-4">
+          <div className="flex items-start justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => copyToClipboard(generatedMemberSQL, "members")}
+                className="px-3 py-1 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                コピー
+              </button>
+              {copiedMembers && (
+                <div className="text-sm text-green-600">コピーしました</div>
+              )}
+            </div>
+          </div>
           <pre className="whitespace-pre-wrap text-sm bg-gray-50 p-3 rounded h-64 overflow-auto">
             {generatedMemberSQL}
           </pre>
