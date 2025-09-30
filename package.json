@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:static": "cross-env NEXT_STATIC_EXPORT=1 next build",
+    "build:static": "cross-env BUILD_MODE=static next build",
     "start": "next start",
     "lint": "biome lint .",
     "format": "biome format . --write"
