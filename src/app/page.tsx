@@ -5,6 +5,9 @@ import type { AccountData } from "@/components/AccountSpreadsheet";
 import AccountSpreadsheet from "@/components/AccountSpreadsheet";
 
 const bcrypt = require("bcryptjs");
+// sql-formatter: format generated SQL for readability in the UI
+// use require to match the project's existing runtime style
+// sql-formatter removed — show raw generated SQL
 
 export default function Home() {
   const [organizationName, setOrganizationName] = useState("");
@@ -15,6 +18,7 @@ export default function Home() {
   const [teacherRows, setTeacherRows] = useState<AccountData[]>([]);
   const [studentRows, setStudentRows] = useState<AccountData[]>([]);
   const [generatedSQL, setGeneratedSQL] = useState("");
+  const [generatedMemberSQL, setGeneratedMemberSQL] = useState("");
 
   const handleDataChange = (teacher: AccountData[], student: AccountData[]) => {
     setTeacherRows(teacher);
@@ -61,7 +65,6 @@ export default function Home() {
     let sql = "";
 
     // Insert user_group first
-    sql += "-- 1_user_group\n";
     sql += `INSERT INTO user_group (
   user_group_name,
   prefecture_code,
@@ -72,15 +75,13 @@ export default function Home() {
   update_date,
   updated_by,
   delete_flag
- ) VALUES (
-  '${orgNameEsc}', ${pref}, ${city}, 1, NOW(), 'admin', NOW(), 'admin', 0
- );\n\n`;
+) VALUES
+  ('${orgNameEsc}', ${pref}, ${city}, 1, NOW(), 'admin', NOW(), 'admin', 0);\n\n`;
 
     if (allUsers.length > 0) {
       // Capture last insert id into a user variable and use it for subsequent inserts
       sql += "SET @user_group_id = LAST_INSERT_ID();\n\n";
 
-      sql += "-- 2_users (teacher / student)\n";
       sql += `INSERT INTO users (
   user_name,
   password,
@@ -102,14 +103,110 @@ VALUES
       });
 
       sql += vals.join(",\n");
-      sql += ";\n\n";
-    } else {
-      // No users: show the id retrieval for user_group
-      sql += "SELECT LAST_INSERT_ID() AS user_group_id;\n\n";
+      sql += ";";
     }
 
-    setGeneratedSQL(sql);
+    const txSqlRaw = `START TRANSACTION;\n\n${sql}\n\nCOMMIT;\n`;
+    // no formatting — display raw generated SQL
+    setGeneratedSQL(txSqlRaw);
+
+    // --- generate member / member_roles / member_role_periods SQL ---
+    const teachersForMembers = teacherRows.filter(
+      (r) => r.userId && r.userId.trim().length > 0,
+    );
+    const studentsForMembers = studentRows.filter(
+      (r) => r.userId && r.userId.trim().length > 0,
+    );
+
+    // We'll generate per-user INSERT statements and use LAST_INSERT_ID()
+    // to capture the generated member_id for subsequent inserts.
+    // This avoids hardcoding member_id (auto-increment) and keeps the
+    // whole operation inside a single transaction.
+    const memberStatements: string[] = [];
+
+    const zip = "105-0001";
+    const cityName = "港区";
+    const address = "虎ノ門3-1-1";
+    const phone = "012-345-6789";
+    const mailDomain = "kankouyohou.com";
+
+    const periodFrom = startDate ? `${startDate} 00:00:00` : null;
+    const periodTo = endDate ? `${endDate} 00:00:00` : null;
+    const expiration = periodTo;
+
+    // helper to quote and escape
+    const q = (s: string | number | null) =>
+      s === null ? "NULL" : `'${String(s).replace(/'/g, "''")}'`;
+
+    // unify teacher/student member SQL generation into a single helper
+    const addMemberStatements = (rows: AccountData[], roleLabel: string) => {
+      rows.forEach((r, idx) => {
+        const loginId = r.userId.replace(/'/g, "''");
+        const memberName = r.userName?.trim() ?? "";
+        const pwHash = hashPassword(r.password || "password");
+
+        memberStatements.push(`-- ${loginId}`);
+        memberStatements.push(
+          `INSERT INTO member (
+  login_id,
+  member_type,
+  member_attribute,
+  member_name,
+  company_name,
+  zip_code,
+  prefecture_code,
+  city_name,
+  address,
+  phone_number,
+  mail_address,
+  registration_date,
+  password,
+  def_prefecture_code,
+  def_administrative_area_code,
+  last_login_date,
+  failure_login_count,
+  expiration_date,
+  login_flag,
+  create_date,
+  update_date,
+  delete_date,
+  delete_flag
+) VALUES
+  (${q(loginId)}, '0', '0', ${q(memberName)}, ${q(organizationName)}, '${zip}', ${pref}, ${q(cityName)}, ${q(address)}, ${q(phone)}, ${q(`${loginId}@${mailDomain}`)}, NOW(), '${pwHash}', ${pref}, ${city}, NULL, '0', ${q(expiration)}, '0', NOW(), NOW(), NULL, '0');`,
+        );
+        memberStatements.push("SET @member_id = LAST_INSERT_ID();");
+
+        memberStatements.push(
+          `INSERT INTO member_roles (member_id, role, create_date, update_date) VALUES (@member_id, 'USER', NOW(), NOW()), (@member_id, 'GENERAL', NOW(), NOW());`,
+        );
+
+        memberStatements.push(
+          `INSERT INTO member_role_periods (member_id, role, period_from, period_to, status, create_date, update_date) VALUES (@member_id, 'GENERAL', ${q(
+            periodFrom,
+          )}, ${q(periodTo)}, 2, NOW(), NOW());`,
+        );
+        memberStatements.push("");
+      });
+    };
+
+    addMemberStatements(teachersForMembers, "teacher");
+    addMemberStatements(studentsForMembers, "student");
+
+    let memberSql = "";
+    if (memberStatements.length > 0) {
+      // keep formatting consistent with the first SQL block: include a section
+      // comment and initialize the member id variable before per-user inserts
+      // memberSql += "-- 3_member ( teacher / student )\n\n";
+      // memberSql += "SET @member_id = 0;\n\n";
+      memberSql += memberStatements.join("\n\n");
+    }
+
+    const txMemberSqlRaw = `START TRANSACTION;\n\n${memberSql}\n\nCOMMIT;\n`;
+    // no formatting — display raw generated member SQL
+    setGeneratedMemberSQL(txMemberSqlRaw);
   };
+
+  // no custom uppercase processing — let sql-formatter decide
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -132,6 +229,25 @@ VALUES
                 type="text"
                 value={organizationName}
                 onChange={(e) => setOrganizationName(e.target.value)}
+                onPaste={(e) => {
+                  // Stop propagation so global spreadsheet paste handler does not intercept
+                  e.stopPropagation();
+                  // also stop other native listeners attached on document
+                  try {
+                    const ne = e.nativeEvent as unknown;
+                    if (
+                      typeof ne === "object" &&
+                      ne !== null &&
+                      "stopImmediatePropagation" in ne
+                    ) {
+                      (
+                        ne as { stopImmediatePropagation: () => void }
+                      ).stopImmediatePropagation();
+                    }
+                  } catch {
+                    // ignore
+                  }
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="組織名を入力"
               />
@@ -209,6 +325,8 @@ VALUES
         </div>
       </div>
 
+      {/* フォーマット設定は不要のため削除。デフォルトではキーワードを大文字化、カンマは後置（行末）に固定 */}
+
       {/* SQL生成ボタン（ページ内の右寄せ。スクロールしても動かない） */}
       <div className="max-w-7xl mx-auto mt-6 flex justify-end">
         <button
@@ -224,6 +342,15 @@ VALUES
         <div className="bg-white rounded-lg border p-4">
           <pre className="whitespace-pre-wrap text-sm bg-gray-50 p-3 rounded h-64 overflow-auto">
             {generatedSQL}
+          </pre>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto mt-6">
+        <div className="bg-white rounded-lg border p-4">
+          <h3 className="text-lg font-medium">Member 用 SQL</h3>
+          <pre className="whitespace-pre-wrap text-sm bg-gray-50 p-3 rounded h-64 overflow-auto">
+            {generatedMemberSQL}
           </pre>
         </div>
       </div>

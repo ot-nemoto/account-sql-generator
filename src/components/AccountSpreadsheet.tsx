@@ -238,6 +238,13 @@ export default function AccountSpreadsheet(props: {
                           else studentSelectedRef.current = target;
                           focusedRoleRef.current = accountRole;
                         }}
+                        onBlur={() => {
+                          // clear selection/focus refs when leaving the grid input
+                          if (accountRole === "teacher")
+                            teacherSelectedRef.current = null;
+                          else studentSelectedRef.current = null;
+                          focusedRoleRef.current = null;
+                        }}
                         onPaste={() => {
                           /* noop - global handler handles multi-cell paste */
                         }}
