@@ -3,6 +3,8 @@
 import { useState } from "react";
 import type { AccountData } from "@/components/AccountSpreadsheet";
 import AccountSpreadsheet from "@/components/AccountSpreadsheet";
+import { generateMembersSql } from "@/lib/sql/generateMembersSql";
+import { generateUsersSql } from "@/lib/sql/generateUsersSql";
 
 const bcrypt = require("bcryptjs");
 // sql-formatter: format generated SQL for readability in the UI
@@ -38,172 +40,53 @@ export default function Home() {
       return;
     }
 
-    const orgNameEsc = organizationName.replace(/'/g, "''");
     const pref = parseInt(prefCode || "0", 10);
     const city = parseInt(municipalityCode || "0", 10);
 
-    // collect and prepare users
-    const teachers = teacherRows
+    // prepare users and hash passwords once
+    const teachersUsers = teacherRows
       .filter((r) => r.userId && r.userId.trim().length > 0)
       .map((r) => ({
-        userIdEsc: r.userId.replace(/'/g, "''"),
+        userId: r.userId,
         pwHash: hashPassword(r.password || "password"),
+        role: 1,
       }));
 
-    const students = studentRows
+    const studentsUsers = studentRows
       .filter((r) => r.userId && r.userId.trim().length > 0)
       .map((r) => ({
-        userIdEsc: r.userId.replace(/'/g, "''"),
+        userId: r.userId,
         pwHash: hashPassword(r.password || "password"),
+        role: 2,
       }));
 
-    const allUsers = [
-      ...teachers.map((t) => ({ ...t, role: 1 })),
-      ...students.map((s) => ({ ...s, role: 2 })),
-    ];
+    const allUsers = [...teachersUsers, ...studentsUsers];
 
-    let sql = "";
+    const usersSql = generateUsersSql({
+      organizationName,
+      pref,
+      city,
+      users: allUsers,
+    });
+    setGeneratedSQL(usersSql || "-- No users found");
 
-    // Insert user_group first
-    sql += `INSERT INTO user_group (
-  user_group_name,
-  prefecture_code,
-  city_code,
-  version_no,
-  create_date,
-  created_by,
-  update_date,
-  updated_by,
-  delete_flag
-) VALUES
-  ('${orgNameEsc}', ${pref}, ${city}, 1, NOW(), 'admin', NOW(), 'admin', 0);\n\n`;
+    // Prepare rows for members generator: include hashed password in 'password' field
+    const mergedRows = [
+      ...teacherRows.filter((r) => r.userId && r.userId.trim().length > 0),
+      ...studentRows.filter((r) => r.userId && r.userId.trim().length > 0),
+    ].map((r) => ({ ...r, password: hashPassword(r.password || "password") }));
 
-    if (allUsers.length > 0) {
-      // Capture last insert id into a user variable and use it for subsequent inserts
-      sql += "SET @user_group_id = LAST_INSERT_ID();\n\n";
+    const membersSql = generateMembersSql({
+      organizationName,
+      pref,
+      city,
+      rows: mergedRows,
+      startDate,
+      endDate,
+      mailDomain: "kankouyohou.com",
+    });
 
-      sql += `INSERT INTO users (
-  user_name,
-  password,
-  role_id,
-  user_group_id,
-  version_no,
-  create_date,
-  created_by,
-  update_date,
-  updated_by,
-  delete_date,
-  delete_flag
-)
-VALUES
-`;
-
-      const vals = allUsers.map((u) => {
-        return `  ('${u.userIdEsc}', '${u.pwHash}', ${u.role}, @user_group_id, 1, NOW(), 'admin', NOW(), 'admin', NULL, 0)`;
-      });
-
-      sql += vals.join(",\n");
-      sql += ";";
-    }
-
-    const txSqlRaw = `START TRANSACTION;\n\n${sql}\n\nCOMMIT;\n`;
-    // no formatting — display raw generated SQL
-    setGeneratedSQL(txSqlRaw);
-
-    // --- generate member / member_roles / member_role_periods SQL ---
-    const teachersForMembers = teacherRows.filter(
-      (r) => r.userId && r.userId.trim().length > 0,
-    );
-    const studentsForMembers = studentRows.filter(
-      (r) => r.userId && r.userId.trim().length > 0,
-    );
-
-    // We'll generate per-user INSERT statements and use LAST_INSERT_ID()
-    // to capture the generated member_id for subsequent inserts.
-    // This avoids hardcoding member_id (auto-increment) and keeps the
-    // whole operation inside a single transaction.
-    const memberStatements: string[] = [];
-
-    const zip = "105-0001";
-    const cityName = "港区";
-    const address = "虎ノ門3-1-1";
-    const phone = "012-345-6789";
-    const mailDomain = "kankouyohou.com";
-
-    const periodFrom = startDate ? `${startDate} 00:00:00` : null;
-    const periodTo = endDate ? `${endDate} 00:00:00` : null;
-    const expiration = periodTo;
-
-    // helper to quote and escape
-    const q = (s: string | number | null) =>
-      s === null ? "NULL" : `'${String(s).replace(/'/g, "''")}'`;
-
-    // unify teacher/student member SQL generation into a single helper
-    const addMemberStatements = (rows: AccountData[], roleLabel: string) => {
-      rows.forEach((r, idx) => {
-        const loginId = r.userId.replace(/'/g, "''");
-        const memberName = r.userName?.trim() ?? "";
-        const pwHash = hashPassword(r.password || "password");
-
-        memberStatements.push(`-- ${loginId}`);
-        memberStatements.push(
-          `INSERT INTO member (
-  login_id,
-  member_type,
-  member_attribute,
-  member_name,
-  company_name,
-  zip_code,
-  prefecture_code,
-  city_name,
-  address,
-  phone_number,
-  mail_address,
-  registration_date,
-  password,
-  def_prefecture_code,
-  def_administrative_area_code,
-  last_login_date,
-  failure_login_count,
-  expiration_date,
-  login_flag,
-  create_date,
-  update_date,
-  delete_date,
-  delete_flag
-) VALUES
-  (${q(loginId)}, '0', '0', ${q(memberName)}, ${q(organizationName)}, '${zip}', ${pref}, ${q(cityName)}, ${q(address)}, ${q(phone)}, ${q(`${loginId}@${mailDomain}`)}, NOW(), '${pwHash}', ${pref}, ${city}, NULL, '0', ${q(expiration)}, '0', NOW(), NOW(), NULL, '0');`,
-        );
-        memberStatements.push("SET @member_id = LAST_INSERT_ID();");
-
-        memberStatements.push(
-          `INSERT INTO member_roles (member_id, role, create_date, update_date) VALUES (@member_id, 'USER', NOW(), NOW()), (@member_id, 'GENERAL', NOW(), NOW());`,
-        );
-
-        memberStatements.push(
-          `INSERT INTO member_role_periods (member_id, role, period_from, period_to, status, create_date, update_date) VALUES (@member_id, 'GENERAL', ${q(
-            periodFrom,
-          )}, ${q(periodTo)}, 2, NOW(), NOW());`,
-        );
-        memberStatements.push("");
-      });
-    };
-
-    addMemberStatements(teachersForMembers, "teacher");
-    addMemberStatements(studentsForMembers, "student");
-
-    let memberSql = "";
-    if (memberStatements.length > 0) {
-      // keep formatting consistent with the first SQL block: include a section
-      // comment and initialize the member id variable before per-user inserts
-      // memberSql += "-- 3_member ( teacher / student )\n\n";
-      // memberSql += "SET @member_id = 0;\n\n";
-      memberSql += memberStatements.join("\n\n");
-    }
-
-    const txMemberSqlRaw = `START TRANSACTION;\n\n${memberSql}\n\nCOMMIT;\n`;
-    // no formatting — display raw generated member SQL
-    setGeneratedMemberSQL(txMemberSqlRaw);
+    setGeneratedMemberSQL(membersSql || "-- No members found");
   };
 
   // no custom uppercase processing — let sql-formatter decide
@@ -348,7 +231,6 @@ VALUES
 
       <div className="max-w-7xl mx-auto mt-6">
         <div className="bg-white rounded-lg border p-4">
-          <h3 className="text-lg font-medium">Member 用 SQL</h3>
           <pre className="whitespace-pre-wrap text-sm bg-gray-50 p-3 rounded h-64 overflow-auto">
             {generatedMemberSQL}
           </pre>
