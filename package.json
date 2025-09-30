@@ -5,9 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:static": "cross-env NEXT_STATIC_EXPORT=1 next build",
     "start": "next start",
-    "lint": "biome lint src/",
-    "format": "biome format src/ --write"
+    "lint": "biome lint .",
+    "format": "biome format . --write"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -21,6 +22,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cross-env": "^7.0.3",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
