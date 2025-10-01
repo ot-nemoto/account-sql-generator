@@ -23,6 +23,7 @@ export default function Home() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [copiedUsers, setCopiedUsers] = useState(false);
   const [copiedMembers, setCopiedMembers] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleDataChange = (teacher: AccountData[], student: AccountData[]) => {
     setTeacherRows(teacher);
@@ -45,6 +46,7 @@ export default function Home() {
     const city = parseInt(municipalityCode || "0", 10);
 
     setIsGenerating(true);
+    setErrorMessage(null);
     // Allow spinner to render before doing synchronous CPU work.
     await new Promise((res) => setTimeout(res, 0));
 
@@ -93,6 +95,12 @@ export default function Home() {
         mailDomain: "kankouyohou.com",
       });
       setGeneratedMemberSQL(membersSql || "-- No members found");
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("generateSQL failed", err);
+      setErrorMessage(
+        "処理中にエラーが発生しました。詳細はコンソールを確認してください。",
+      );
     } finally {
       setIsGenerating(false);
     }
@@ -131,6 +139,14 @@ export default function Home() {
         <h1 className="text-3xl font-bold text-gray-900 mb-8">
           アカウントSQL生成ツール
         </h1>
+
+        {errorMessage && (
+          <div className="mb-4 max-w-7xl mx-auto">
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded">
+              {errorMessage}
+            </div>
+          </div>
+        )}
 
         <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
