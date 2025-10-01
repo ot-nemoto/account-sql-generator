@@ -6,10 +6,9 @@ import AccountSpreadsheet from "@/components/AccountSpreadsheet";
 import { generateMembersSql } from "@/lib/sql/generateMembersSql";
 import { generateUsersSql } from "@/lib/sql/generateUsersSql";
 
+// bcryptjs is used synchronously here (existing behavior). For large workloads consider
+// moving hashing into a Web Worker or to the server.
 const bcrypt = require("bcryptjs");
-// sql-formatter: format generated SQL for readability in the UI
-// use require to match the project's existing runtime style
-// sql-formatter removed — show raw generated SQL
 
 export default function Home() {
   const [organizationName, setOrganizationName] = useState("");
@@ -21,6 +20,7 @@ export default function Home() {
   const [studentRows, setStudentRows] = useState<AccountData[]>([]);
   const [generatedSQL, setGeneratedSQL] = useState("");
   const [generatedMemberSQL, setGeneratedMemberSQL] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
   const [copiedUsers, setCopiedUsers] = useState(false);
   const [copiedMembers, setCopiedMembers] = useState(false);
 
@@ -30,65 +30,72 @@ export default function Home() {
   };
 
   const hashPassword = (pw: string) => {
-    // bcryptjs: using 10 rounds default
     const salt = bcrypt.genSaltSync(10);
     return bcrypt.hashSync(pw, salt);
   };
 
-  const generateSQL = () => {
-    // Guard: require organization name
+  const generateSQL = async () => {
     if (!organizationName) {
       setGeneratedSQL("-- 組織名を入力してください");
+      setGeneratedMemberSQL("");
       return;
     }
 
     const pref = parseInt(prefCode || "0", 10);
     const city = parseInt(municipalityCode || "0", 10);
 
-    // prepare users and hash passwords once
-    const teachersUsers = teacherRows
-      .filter((r) => r.userId && r.userId.trim().length > 0)
-      .map((r) => ({
-        userId: r.userId,
-        pwHash: hashPassword(r.password || "password"),
-        role: 1,
+    setIsGenerating(true);
+    // Allow spinner to render before doing synchronous CPU work.
+    await new Promise((res) => setTimeout(res, 0));
+
+    try {
+      const teachersUsers = teacherRows
+        .filter((r) => r.userId && r.userId.trim().length > 0)
+        .map((r) => ({
+          userId: r.userId,
+          pwHash: hashPassword(r.password || "password"),
+          role: 1,
+        }));
+
+      const studentsUsers = studentRows
+        .filter((r) => r.userId && r.userId.trim().length > 0)
+        .map((r) => ({
+          userId: r.userId,
+          pwHash: hashPassword(r.password || "password"),
+          role: 2,
+        }));
+
+      const allUsers = [...teachersUsers, ...studentsUsers];
+
+      const usersSql = generateUsersSql({
+        organizationName,
+        pref,
+        city,
+        users: allUsers,
+      });
+      setGeneratedSQL(usersSql || "-- No users found");
+
+      const mergedRows = [
+        ...teacherRows.filter((r) => r.userId && r.userId.trim().length > 0),
+        ...studentRows.filter((r) => r.userId && r.userId.trim().length > 0),
+      ].map((r) => ({
+        ...r,
+        password: hashPassword(r.password || "password"),
       }));
 
-    const studentsUsers = studentRows
-      .filter((r) => r.userId && r.userId.trim().length > 0)
-      .map((r) => ({
-        userId: r.userId,
-        pwHash: hashPassword(r.password || "password"),
-        role: 2,
-      }));
-
-    const allUsers = [...teachersUsers, ...studentsUsers];
-
-    const usersSql = generateUsersSql({
-      organizationName,
-      pref,
-      city,
-      users: allUsers,
-    });
-    setGeneratedSQL(usersSql || "-- No users found");
-
-    // Prepare rows for members generator: include hashed password in 'password' field
-    const mergedRows = [
-      ...teacherRows.filter((r) => r.userId && r.userId.trim().length > 0),
-      ...studentRows.filter((r) => r.userId && r.userId.trim().length > 0),
-    ].map((r) => ({ ...r, password: hashPassword(r.password || "password") }));
-
-    const membersSql = generateMembersSql({
-      organizationName,
-      pref,
-      city,
-      rows: mergedRows,
-      startDate,
-      endDate,
-      mailDomain: "kankouyohou.com",
-    });
-
-    setGeneratedMemberSQL(membersSql || "-- No members found");
+      const membersSql = generateMembersSql({
+        organizationName,
+        pref,
+        city,
+        rows: mergedRows,
+        startDate,
+        endDate,
+        mailDomain: "kankouyohou.com",
+      });
+      setGeneratedMemberSQL(membersSql || "-- No members found");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const copyToClipboard = async (text: string, which: "users" | "members") => {
@@ -102,18 +109,24 @@ export default function Home() {
         setTimeout(() => setCopiedMembers(false), 2000);
       }
     } catch (err) {
-      // best-effort: log and do nothing else
-      // clipboard might be unavailable in some environments
-      // fallback could be implemented if needed
       // eslint-disable-next-line no-console
       console.error("copy failed", err);
     }
   };
 
-  // no custom uppercase processing — let sql-formatter decide
-
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-6 relative">
+      {isGenerating && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white p-6 rounded-md flex flex-col items-center gap-3">
+            <div className="w-10 h-10 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin" />
+            <div className="text-sm text-gray-700">
+              生成中…しばらくお待ちください
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">
           アカウントSQL生成ツール
@@ -134,27 +147,23 @@ export default function Home() {
                 value={organizationName}
                 onChange={(e) => setOrganizationName(e.target.value)}
                 onPaste={(e) => {
-                  // Stop propagation so global spreadsheet paste handler does not intercept
                   e.stopPropagation();
-                  // also stop other native listeners attached on document
                   try {
                     const ne = e.nativeEvent as unknown;
                     if (
                       typeof ne === "object" &&
                       ne !== null &&
                       "stopImmediatePropagation" in ne
-                    ) {
+                    )
                       (
                         ne as { stopImmediatePropagation: () => void }
                       ).stopImmediatePropagation();
-                    }
-                  } catch {
-                    // ignore
-                  }
+                  } catch {}
                 }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="組織名を入力"
               />
+
               <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
                   <label
@@ -229,16 +238,14 @@ export default function Home() {
         </div>
       </div>
 
-      {/* フォーマット設定は不要のため削除。デフォルトではキーワードを大文字化、カンマは後置（行末）に固定 */}
-
-      {/* SQL生成ボタン（ページ内の右寄せ。スクロールしても動かない） */}
       <div className="max-w-7xl mx-auto mt-6 flex justify-end">
         <button
           type="button"
           onClick={generateSQL}
-          className="px-4 py-2 bg-green-600 text-white rounded-md shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+          disabled={isGenerating}
+          className={`px-4 py-2 rounded-md shadow focus:outline-none focus:ring-2 focus:ring-green-500 ${isGenerating ? "bg-green-400 text-white cursor-not-allowed" : "bg-green-600 text-white hover:bg-green-700"}`}
         >
-          SQL生成
+          {isGenerating ? "生成中..." : "SQL生成"}
         </button>
       </div>
 
