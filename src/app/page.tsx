@@ -125,7 +125,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50 p-6 relative">
       {isGenerating && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
           <div className="bg-white p-6 rounded-md flex flex-col items-center gap-3">
             <div className="w-10 h-10 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin" />
             <div className="text-sm text-gray-700">
