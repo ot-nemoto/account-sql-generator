@@ -122,6 +122,31 @@ export default function Home() {
     }
   };
 
+  // download given text as a .sql file. filename uses organizationName fallback.
+  const downloadSqlFile = (text: string, which: "users" | "members") => {
+    try {
+      const blob = new Blob([text || ""], {
+        type: "application/sql;charset=utf-8",
+      });
+      const url = URL.createObjectURL(blob);
+      const filenameBase =
+        organizationName && organizationName.trim().length > 0
+          ? organizationName.trim().replace(/[^a-zA-Z0-9-_. ]/g, "_")
+          : "sql_export";
+      const filename = `${filenameBase}_${which}.sql`;
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("download failed", err);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-6 relative">
       {isGenerating && (
@@ -272,9 +297,18 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => copyToClipboard(generatedSQL, "users")}
-                className="px-3 py-1 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={!generatedSQL || generatedSQL.trim().length === 0}
+                className={`px-3 py-1 rounded-md shadow focus:outline-none focus:ring-2 focus:ring-blue-500 ${!generatedSQL || generatedSQL.trim().length === 0 ? "bg-blue-300 text-white opacity-50 cursor-not-allowed" : "bg-blue-600 text-white hover:bg-blue-700"}`}
               >
                 コピー
+              </button>
+              <button
+                type="button"
+                onClick={() => downloadSqlFile(generatedSQL, "users")}
+                disabled={!generatedSQL || generatedSQL.trim().length === 0}
+                className={`px-3 py-1 bg-gray-200 text-gray-800 rounded-md shadow ${!generatedSQL || generatedSQL.trim().length === 0 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-300"}`}
+              >
+                ダウンロード
               </button>
               {copiedUsers && (
                 <div className="text-sm text-green-600">コピーしました</div>
@@ -294,9 +328,22 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => copyToClipboard(generatedMemberSQL, "members")}
-                className="px-3 py-1 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={
+                  !generatedMemberSQL || generatedMemberSQL.trim().length === 0
+                }
+                className={`px-3 py-1 rounded-md shadow focus:outline-none focus:ring-2 focus:ring-blue-500 ${!generatedMemberSQL || generatedMemberSQL.trim().length === 0 ? "bg-blue-300 text-white opacity-50 cursor-not-allowed" : "bg-blue-600 text-white hover:bg-blue-700"}`}
               >
                 コピー
+              </button>
+              <button
+                type="button"
+                onClick={() => downloadSqlFile(generatedMemberSQL, "members")}
+                disabled={
+                  !generatedMemberSQL || generatedMemberSQL.trim().length === 0
+                }
+                className={`px-3 py-1 bg-gray-200 text-gray-800 rounded-md shadow ${!generatedMemberSQL || generatedMemberSQL.trim().length === 0 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-300"}`}
+              >
+                ダウンロード
               </button>
               {copiedMembers && (
                 <div className="text-sm text-green-600">コピーしました</div>
