@@ -1,5 +1,9 @@
 # アカウントSQL生成ツール
 
+[![Pages](https://github.com/ot-nemoto/account-sql-generator/actions/workflows/deploy.yml/badge.svg)](https://github.com/ot-nemoto/account-sql-generator/actions/workflows/deploy.yml)
+[![Dependabot](https://github.com/ot-nemoto/account-sql-generator/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/ot-nemoto/account-sql-generator/actions/workflows/dependabot/dependabot-updates/)
+[![License](https://img.shields.io/github/license/ot-nemoto/account-sql-generator)](https://github.com/ot-nemoto/account-sql-generator/blob/master/LICENSE)
+
 教育機関向けのユーザー/メンバーアカウントをまとめて登録するための SQL を生成する Next.js アプリケーションです。教師と生徒のアカウント情報をブラウザ上で編集・貼り付けし、`users` テーブルおよび `member` 系テーブル向けの `INSERT` 文を一括作成できます。
 
 ## クイックスタート (Try it)
@@ -76,25 +80,6 @@
 - ロジック: `bcryptjs` による同期ハッシュ、`src/lib/sql/*` に SQL ビルダー
 - 開発ツール: Biome (Lint/Format), cross-env
 
-## ディレクトリ構成
-
-```
-src/
-├── app/
-│   ├── layout.tsx          # アプリ全体のレイアウト
-│   ├── page.tsx            # メインページ（フォーム & SQL 生成）
-│   ├── globals.css         # Tailwind 4 ベースのグローバルスタイル
-│   └── favicon.ico
-├── components/
-│   └── AccountSpreadsheet.tsx  # 教師/生徒のスプレッドシート UI
-└── lib/
-	 └── sql/
-		  ├── generateUsersSql.ts    # user_group / users 用 SQL ビルダー
-		  ├── generateMembersSql.ts  # member 系テーブル用 SQL ビルダー
-		  ├── helpers.ts             # クオート関数・定数
-		  └── types.ts               # 型定義
-```
-
 ## 開発スクリプト
 
 - `npm run dev` : 開発サーバーを起動 (`next dev`)
@@ -108,7 +93,3 @@ src/
 
 - メールドメイン、郵便番号、住所などの固定値は `src/lib/sql/helpers.ts` で設定できます。
 - パスワードハッシュ処理はクライアントサイドで同期的に行われるため、大量件数ではパフォーマンスへ影響があります。必要に応じて Web Worker やサーバーサイドへの移行を検討してください。
-
-## ライセンス
-
-ライセンス情報はリポジトリのルートに配置される `LICENSE` ファイルをご確認ください（未設定の場合は作者にお問い合わせください）。
