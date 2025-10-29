@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import type { AccountData } from "@/components/AccountSpreadsheet";
 import AccountSpreadsheet from "@/components/AccountSpreadsheet";
 import { generateMembersSql } from "@/lib/sql/generateMembersSql";
@@ -25,10 +25,13 @@ export default function Home() {
   const [copiedMembers, setCopiedMembers] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleDataChange = (teacher: AccountData[], student: AccountData[]) => {
-    setTeacherRows(teacher);
-    setStudentRows(student);
-  };
+  const handleDataChange = useCallback(
+    (teacher: AccountData[], student: AccountData[]) => {
+      setTeacherRows(teacher);
+      setStudentRows(student);
+    },
+    [],
+  );
 
   const hashPassword = (pw: string) => {
     const salt = bcrypt.genSaltSync(10);
