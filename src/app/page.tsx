@@ -129,9 +129,18 @@ export default function Home() {
         type: "application/sql;charset=utf-8",
       });
       const url = URL.createObjectURL(blob);
+      // Build filename base: remove half-width/全角 spaces and all symbols.
+      // Keep only Unicode letters and numbers so Japanese stays but spaces/symbols are removed.
       const filenameBase =
         organizationName && organizationName.trim().length > 0
-          ? organizationName.trim().replace(/[^a-zA-Z0-9-_. ]/g, "_")
+          ? (() => {
+              const cleaned = organizationName
+                .trim()
+                // remove everything except Unicode letters and numbers
+                .replace(/[^\p{L}\p{N}]/gu, "")
+                .slice(0, 100);
+              return cleaned.length > 0 ? cleaned : "sql_export";
+            })()
           : "sql_export";
       const filename = `${filenameBase}_${which}.sql`;
       const a = document.createElement("a");
