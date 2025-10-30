@@ -78,9 +78,16 @@ const Row = memo(function RowComponent({
             className="w-full bg-transparent outline-none"
             value={row[key]}
             onChange={(e) => {
-              if (composingRef.current) return;
+              const val = (e.target as HTMLInputElement).value;
               const caret = (e.target as HTMLInputElement).selectionStart;
-              onChangeField(row.id, key, e.target.value, () => {
+              if (composingRef.current) {
+                // update state during composition to avoid global lockups on
+                // some IME implementations that don't reliably dispatch
+                // compositionend; avoid restoring caret while composing.
+                onChangeField(row.id, key, val);
+                return;
+              }
+              onChangeField(row.id, key, val, () => {
                 const ref = inputRefs.current[`${row.id}:${String(key)}`];
                 if (ref) {
                   try {
@@ -111,6 +118,12 @@ const Row = memo(function RowComponent({
                 }
               });
             }}
+            onKeyDown={(e) => {
+              // Some IME or OS actions may not reliably fire compositionend; ensure
+              // composing flag is cleared on Enter/Escape to avoid blocking future input.
+              if (e.key === "Enter" || e.key === "Escape")
+                composingRef.current = false;
+            }}
             onFocus={() => {
               const target = { rowIdx, columnKey: key } as {
                 rowIdx: number;
@@ -122,6 +135,9 @@ const Row = memo(function RowComponent({
               focusedRoleRef.current = accountRole;
             }}
             onBlur={() => {
+              // clear composing flag on blur as a safety in case compositionend
+              // didn't fire. Also clear selection refs.
+              composingRef.current = false;
               if (accountRole === "teacher") teacherSelectedRef.current = null;
               else studentSelectedRef.current = null;
               focusedRoleRef.current = null;
@@ -213,7 +229,7 @@ const RoleGridComponent = memo(function RoleGridComponent(props: {
   }, [accountRole, setRows, teacherCounter, studentCounter]);
 
   const onChangeField = useCallback(
-    (id: string, key: keyof AccountData, value: string) => {
+    (id: string, key: keyof AccountData, value: string, after?: () => void) => {
       setRows((prev) => {
         const next = prev.map((r) => ({ ...r }));
         const idx = next.findIndex((r) => r.id === id);
@@ -221,6 +237,14 @@ const RoleGridComponent = memo(function RoleGridComponent(props: {
         next[idx] = { ...next[idx], [key]: value };
         return next;
       });
+      if (after) {
+        // ensure DOM has updated before running after (caret restore)
+        requestAnimationFrame(() => {
+          try {
+            after();
+          } catch {}
+        });
+      }
     },
     [setRows],
   );
