@@ -30,9 +30,7 @@ describe("generateUsersSql()", () => {
   it("user_group INSERT が含まれる", () => {
     const sql = generateUsersSql({ ...baseOpts, users: [teacher] });
     expect(sql).toContain("INSERT INTO user_group");
-    expect(sql).toContain("'テスト学校'");
-    expect(sql).toContain("13");
-    expect(sql).toContain("13101");
+    expect(sql).toMatch(/VALUES\s*\(\s*'テスト学校'\s*,\s*13\s*,\s*13101\s*[,)]/);
   });
 
   it("users が空の場合は users INSERT を出力しない", () => {
