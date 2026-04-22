@@ -13,7 +13,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: ["src/lib/sql/**/*.ts"],
-      exclude: ["src/lib/sql/types.ts"],
+      exclude: ["src/lib/sql/types.ts", "**/*.test.ts"],
     },
   },
 });
