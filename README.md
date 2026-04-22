@@ -24,6 +24,7 @@
 | [docs/ui.md](docs/ui.md) | 画面仕様・コンポーネント一覧・UI規約 |
 | [docs/development.md](docs/development.md) | ローカルセットアップ・ビルド・デプロイ手順 |
 | [docs/tasks.md](docs/tasks.md) | フェーズ別マイルストーン |
+| [docs/testing.md](docs/testing.md) | テスト方針・実行手順 |
 
 ## クイックスタート
 
