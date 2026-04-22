@@ -66,16 +66,21 @@ describe("generateMembersSql()", () => {
     );
   });
 
-  it("endDate が未指定の場合は period_to が NULL になる", () => {
+  it("endDate が未指定の場合は period_to と expiration_date が NULL になる", () => {
     const result = generateMembersSql({
       ...baseOpts,
       rows: [row],
       endDate: undefined,
     });
-    // period_to と expiration_date がともに NULL
-    const nullMatches = result.match(/NULL/g);
-    expect(nullMatches).not.toBeNull();
-    expect((nullMatches ?? []).length).toBeGreaterThanOrEqual(2);
+    // member_role_periods の period_to が NULL
+    expect(result).toMatch(
+      /INSERT INTO member_role_periods[\s\S]*?'2024-04-01 00:00:00',\s*NULL/,
+    );
+    // member の expiration_date が NULL
+    // カラム順: mail_address, registration_date, password, pref, city, last_login_date(NULL), failure_count('0'), expiration_date(NULL)
+    expect(result).toMatch(
+      /'teacher01@example\.com',\s*NOW\(\),\s*'[^']+',\s*13,\s*13101,\s*NULL,\s*'0',\s*NULL/,
+    );
   });
 
   it("mailDomain 未指定時はデフォルトドメインが使われる", () => {
