@@ -61,7 +61,9 @@ describe("generateMembersSql()", () => {
       rows: [row],
       startDate: undefined,
     });
-    expect(result).toContain("NULL, ");
+    expect(result).toMatch(
+      /INSERT INTO member_role_periods[\s\S]*'GENERAL', NULL, '2025-03-31 00:00:00'/,
+    );
   });
 
   it("endDate が未指定の場合は period_to が NULL になる", () => {
