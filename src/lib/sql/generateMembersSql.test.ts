@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { defaultMailDomain } from "./helpers";
 import { generateMembersSql } from "./generateMembersSql";
-import type { MemberOptions } from "./types";
+import type { AccountData, MemberOptions } from "./types";
 
 const baseOpts: MemberOptions = {
   organizationName: "テスト学校",
@@ -13,12 +13,12 @@ const baseOpts: MemberOptions = {
   mailDomain: "example.com",
 };
 
-const row = {
+const row: AccountData = {
   id: "t-1",
   userId: "teacher01",
   userName: "山田太郎",
   password: "$2b$10$hashedpassword",
-  role: "teacher" as const,
+  role: "teacher",
 };
 
 describe("generateMembersSql()", () => {
