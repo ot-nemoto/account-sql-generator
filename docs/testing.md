@@ -1,41 +1,43 @@
-# testing.md
-
-## テスト種別
-
-| 種別 | 対象 | ツール |
-|------|------|-------|
-| ユニットテスト | `src/lib/sql/` の純粋関数 | Vitest |
-
-UI コンポーネント（`src/components/`・`src/app/`）のテストは現時点でスコープ外とする。
-
-## テスト対象
-
-| ファイル | 内容 |
-|---------|------|
-| `src/lib/sql/helpers.ts` | `q()` 関数の SQL エスケープ処理 |
-| `src/lib/sql/generateUsersSql.ts` | users / user_group INSERT 文の生成 |
-| `src/lib/sql/generateMembersSql.ts` | member / member_roles / member_role_periods INSERT 文の生成 |
+# testing.md — テスト方針
 
 ## 完了条件
 
-- 全テストが `npm run test` でパスすること
-- 上記3ファイルの主要ロジックがカバーされていること
+| 対象 | 完了条件 |
+|------|---------|
+| SQL 生成ロジック（`src/lib/sql/`） | ユニットテストの作成をもって完了 |
+| UI コンポーネント（`src/components/`・`src/app/`） | Playwright MCP による E2E テスト実行をもって完了 |
 
-## カバレッジ方針
+---
 
-- `npm run test:coverage` でカバレッジレポートを生成する
-- カバレッジ対象: `src/lib/sql/**/*.ts`（`types.ts` を除く）
-- 数値目標は設けないが、主要な分岐（空配列・null・特殊文字）を網羅する
+## ユニットテスト（Vitest）
 
-## 実行手順
+### 実行
 
 ```bash
-# テスト実行（一回）
-npm run test
-
-# ウォッチモード（開発中）
-npm run test:watch
-
-# カバレッジレポート生成
-npm run test:coverage
+npm test                          # 1回実行
+npm run test:watch                # ウォッチモード（開発中）
+npx vitest run --reporter=verbose # テストケース名をすべて表示
+npm run test:coverage             # カバレッジレポート出力
 ```
+
+### 対象・方針
+
+- `src/lib/sql/` 配下の純粋関数はユニットテスト必須
+- テストファイルは実装ファイルと同じディレクトリに `[name].test.ts` で配置
+
+### カバレッジ方針
+
+| ケース | 条件 |
+|--------|------|
+| 正常系 | 期待する戻り値 |
+| 境界値・エッジケース | 空配列、null・undefined、特殊文字（シングルクォート等）など |
+
+---
+
+## E2E テスト（Playwright MCP）
+
+### 実施方法
+
+テスト対象の URL と [`docs/e2e-scenarios.md`](e2e-scenarios.md) のシナリオをモデルに渡して実施する。
+
+本アプリケーションは認証不要のシングルページツールのため、テストユーザーは不要。
