@@ -8,7 +8,6 @@ export function generateUsersSql(opts: {
   users: UserRow[];
 }) {
   const { organizationName, pref, city, users } = opts;
-  const orgNameEsc = organizationName.replace(/'/g, "''");
 
   let sql = "";
 
@@ -23,7 +22,7 @@ export function generateUsersSql(opts: {
   updated_by,
   delete_flag
 ) VALUES
-  ('${orgNameEsc}', ${pref}, ${city}, 1, NOW(), 'admin', NOW(), 'admin', 0);\n\n`;
+  (${q(organizationName)}, ${pref}, ${city}, 1, NOW(), 'admin', NOW(), 'admin', 0);\n\n`;
 
   if (users.length > 0) {
     sql += "SET @user_group_id = LAST_INSERT_ID();\n\n";

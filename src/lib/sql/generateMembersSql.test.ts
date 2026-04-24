@@ -103,4 +103,13 @@ describe("generateMembersSql()", () => {
     expect(result).toContain("@first_member_id + 0");
     expect(result).toContain("@first_member_id + 1");
   });
+
+  it("userId のシングルクォートがエスケープされる", () => {
+    const result = generateMembersSql({
+      ...baseOpts,
+      rows: [{ ...row, userId: "o'brien" }],
+    });
+    expect(result).toContain("'o''brien'");
+    expect(result).toContain("o''brien@example.com");
+  });
 });

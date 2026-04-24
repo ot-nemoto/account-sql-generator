@@ -27,7 +27,7 @@ export function generateMembersSql(opts: MemberOptions) {
   const periodVals: string[] = [];
 
   rows.forEach((r, idx) => {
-    const loginId = r.userId.replace(/'/g, "''");
+    const loginId = r.userId;
     const memberName = r.userName?.trim() ?? "";
     const pwHash = r.password ? r.password : ""; // caller should provide hashed pw if desired
     const mail = `${loginId}@${md}`;
