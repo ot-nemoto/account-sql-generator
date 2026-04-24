@@ -1,15 +1,8 @@
 "use client";
 
 import { memo, useCallback, useEffect, useRef, useState } from "react";
-import type { RoleLabel } from "@/lib/sql/types";
-
-export interface AccountData {
-  id: string;
-  userId: string;
-  userName: string;
-  password: string;
-  role: RoleLabel;
-}
+import type { AccountData } from "@/lib/sql/types";
+export type { AccountData } from "@/lib/sql/types";
 
 const COL_KEYS: (keyof AccountData)[] = ["userId", "userName", "password"];
 
