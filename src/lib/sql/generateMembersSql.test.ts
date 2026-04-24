@@ -18,7 +18,7 @@ const row = {
   userId: "teacher01",
   userName: "山田太郎",
   password: "$2b$10$hashedpassword",
-  role: "teacher",
+  role: "teacher" as const,
 };
 
 describe("generateMembersSql()", () => {
