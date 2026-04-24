@@ -82,7 +82,7 @@ Playwright MCP が E2E テストを実施するためのシナリオ集。
 | 2 | 生成完了後、users SQL 出力エリアを確認する | users SQL の内容 | `START TRANSACTION;` で始まり `COMMIT;` で終わる SQL が表示される |
 | 3 | 生成完了後、member SQL 出力エリアを確認する | member SQL の内容 | `START TRANSACTION;` で始まり `COMMIT;` で終わる SQL が表示される |
 | 4 | users SQL に入力した組織名・ID が含まれることを確認する | SQL の正確性 | 入力した組織名・ユーザー ID が SQL 内に反映されている |
-| 5 | member SQL にメールアドレス（`{ID}@kankouyohou.com`）が含まれることを確認する | メールドメイン | `{userId}@kankouyohou.com` 形式のメールアドレスが含まれる |
+| 5 | member SQL にメールアドレス（`{ユーザーID}@kankouyohou.com`）が含まれることを確認する | メールドメイン | `{ユーザーID}@kankouyohou.com` 形式のメールアドレスが含まれる |
 | 6 | 開始日・終了日を入力して生成し、member SQL に期間が反映されることを確認する | 期間の反映 | `period_from`・`period_to` に指定した日付が含まれる |
 | 7 | 開始日・終了日を空のまま生成し、member SQL を確認する | 期間未入力時 | `period_from`・`period_to` が `NULL` になる |
 | 8 | パスワード未入力のデータで生成し、SQL を確認する | デフォルトパスワード | `password` をハッシュ化した値が使われる |
