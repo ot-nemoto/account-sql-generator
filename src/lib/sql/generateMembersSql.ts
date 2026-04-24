@@ -33,7 +33,7 @@ export function generateMembersSql(opts: MemberOptions) {
     const mail = `${loginId}@${md}`;
 
     memberVals.push(
-      `(${q(loginId)}, '0', '0', ${q(memberName)}, ${q(organizationName)}, '${zip}', ${pref}, ${q(cityName)}, ${q(address)}, ${q(phone)}, ${q(mail)}, NOW(), '${pwHash}', ${pref}, ${city}, NULL, '0', ${q(expiration)}, '0', NOW(), NOW(), NULL, '0')`,
+      `(${q(loginId)}, '0', '0', ${q(memberName)}, ${q(organizationName)}, '${zip}', ${pref}, ${q(cityName)}, ${q(address)}, ${q(phone)}, ${q(mail)}, NOW(), ${q(pwHash)}, ${pref}, ${city}, NULL, '0', ${q(expiration)}, '0', NOW(), NOW(), NULL, '0')`,
     );
 
     const base = `(@first_member_id + ${idx})`;
