@@ -54,23 +54,19 @@ export default function Home() {
     await new Promise((res) => setTimeout(res, 0));
 
     try {
-      const teachersUsers = teacherRows
-        .filter((r) => r.userId && r.userId.trim().length > 0)
-        .map((r) => ({
-          userId: r.userId,
-          pwHash: hashPassword(r.password || "password"),
-          role: 1,
-        }));
+      const mergedRows = [
+        ...teacherRows.filter((r) => r.userId && r.userId.trim().length > 0),
+        ...studentRows.filter((r) => r.userId && r.userId.trim().length > 0),
+      ].map((r) => ({
+        ...r,
+        password: hashPassword(r.password || "password"),
+      }));
 
-      const studentsUsers = studentRows
-        .filter((r) => r.userId && r.userId.trim().length > 0)
-        .map((r) => ({
-          userId: r.userId,
-          pwHash: hashPassword(r.password || "password"),
-          role: 2,
-        }));
-
-      const allUsers = [...teachersUsers, ...studentsUsers];
+      const allUsers = mergedRows.map((r) => ({
+        userId: r.userId,
+        pwHash: r.password,
+        role: r.role === "teacher" ? 1 : 2,
+      }));
 
       const usersSql = generateUsersSql({
         organizationName,
@@ -79,14 +75,6 @@ export default function Home() {
         users: allUsers,
       });
       setGeneratedSQL(usersSql || "-- No users found");
-
-      const mergedRows = [
-        ...teacherRows.filter((r) => r.userId && r.userId.trim().length > 0),
-        ...studentRows.filter((r) => r.userId && r.userId.trim().length > 0),
-      ].map((r) => ({
-        ...r,
-        password: hashPassword(r.password || "password"),
-      }));
 
       const membersSql = generateMembersSql({
         organizationName,
