@@ -1,14 +1,8 @@
 "use client";
 
 import { memo, useCallback, useEffect, useRef, useState } from "react";
-
-export interface AccountData {
-  id: string;
-  userId: string;
-  userName: string;
-  password: string;
-  role: string;
-}
+import type { AccountData, RoleLabel } from "@/lib/sql/types";
+export type { AccountData } from "@/lib/sql/types";
 
 const COL_KEYS: (keyof AccountData)[] = ["userId", "userName", "password"];
 
@@ -43,7 +37,7 @@ const Row = memo(function RowComponent({
 }: {
   row: AccountData;
   rowIdx: number;
-  accountRole: "teacher" | "student";
+  accountRole: RoleLabel;
   onChangeField: (
     id: string,
     key: keyof AccountData,
@@ -65,7 +59,7 @@ const Row = memo(function RowComponent({
     rowIdx: number;
     columnKey: string;
   } | null>;
-  focusedRoleRef: React.MutableRefObject<"teacher" | "student" | null>;
+  focusedRoleRef: React.MutableRefObject<RoleLabel | null>;
 }) {
   // Row render (debug logging removed)
   return (
@@ -165,7 +159,7 @@ const Row = memo(function RowComponent({
 // RoleGrid moved to module scope and memoized so its identity is stable and
 // we can observe when it re-renders or is recreated.
 const RoleGridComponent = memo(function RoleGridComponent(props: {
-  accountRole: "teacher" | "student";
+  accountRole: RoleLabel;
   rows: AccountData[];
   setRows: React.Dispatch<React.SetStateAction<AccountData[]>>;
   teacherCounter: React.MutableRefObject<number>;
@@ -184,7 +178,7 @@ const RoleGridComponent = memo(function RoleGridComponent(props: {
     rowIdx: number;
     columnKey: string;
   } | null>;
-  focusedRoleRef: React.MutableRefObject<"teacher" | "student" | null>;
+  focusedRoleRef: React.MutableRefObject<RoleLabel | null>;
 }) {
   const {
     accountRole,
@@ -355,7 +349,7 @@ export default function AccountSpreadsheet(props: {
     rowIdx: number;
     columnKey: string;
   } | null>(null);
-  const focusedRoleRef = useRef<"teacher" | "student" | null>(null);
+  const focusedRoleRef = useRef<RoleLabel | null>(null);
 
   // handle paste from Excel/Sheets (TSV) at grid level
   useEffect(() => {

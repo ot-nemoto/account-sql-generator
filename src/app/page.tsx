@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import type { AccountData } from "@/components/AccountSpreadsheet";
 import AccountSpreadsheet from "@/components/AccountSpreadsheet";
 import { generateMembersSql } from "@/lib/sql/generateMembersSql";
 import { generateUsersSql } from "@/lib/sql/generateUsersSql";
+import { ROLE_MAP } from "@/lib/sql/types";
+import type { AccountData } from "@/lib/sql/types";
 
 // bcryptjs is used synchronously here (existing behavior). For large workloads consider
 // moving hashing into a Web Worker or to the server.
@@ -65,7 +66,7 @@ export default function Home() {
       const allUsers = mergedRows.map((r) => ({
         userId: r.userId,
         pwHash: r.password,
-        role: r.role === "teacher" ? 1 : 2,
+        role: ROLE_MAP[r.role],
       }));
 
       const usersSql = generateUsersSql({
