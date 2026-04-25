@@ -4,13 +4,23 @@ import { useState } from "react";
 import { generateMembersSql } from "@/lib/sql/generateMembersSql";
 import { generateUsersSql } from "@/lib/sql/generateUsersSql";
 import { toUserRows } from "@/lib/sql/helpers";
-import bcrypt from "bcryptjs";
 import type { AccountData } from "@/lib/sql/types";
 
-const hashPassword = (pw: string): string => {
-  const salt = bcrypt.genSaltSync(10);
-  return bcrypt.hashSync(pw, salt);
-};
+const hashPasswords = (passwords: string[]): Promise<string[]> =>
+  new Promise((resolve, reject) => {
+    const worker = new Worker(
+      new URL("../workers/bcryptWorker.ts", import.meta.url),
+    );
+    worker.onmessage = (e: MessageEvent<string[]>) => {
+      worker.terminate();
+      resolve(e.data);
+    };
+    worker.onerror = (err) => {
+      worker.terminate();
+      reject(err);
+    };
+    worker.postMessage(passwords);
+  });
 
 type UseSQLGenerationProps = {
   organizationName: string;
@@ -48,16 +58,19 @@ export function useSQLGeneration({
 
     setIsGenerating(true);
     setErrorMessage(null);
-    // Allow spinner to render before doing synchronous CPU work.
-    await new Promise((res) => setTimeout(res, 0));
+
 
     try {
-      const mergedRows = [
+      const filteredRows = [
         ...teacherRows.filter((r) => r.userId.trim().length > 0),
         ...studentRows.filter((r) => r.userId.trim().length > 0),
-      ].map((r) => ({
+      ];
+      const hashes = await hashPasswords(
+        filteredRows.map((r) => r.password || "password"),
+      );
+      const mergedRows = filteredRows.map((r, i) => ({
         ...r,
-        password: hashPassword(r.password || "password"),
+        password: hashes[i],
       }));
 
       const usersSql = generateUsersSql({
