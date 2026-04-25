@@ -1,20 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export function useClipboardAndDownload(organizationName: string) {
   const [copiedUsers, setCopiedUsers] = useState(false);
   const [copiedMembers, setCopiedMembers] = useState(false);
+  const usersTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const membersTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (usersTimerRef.current) clearTimeout(usersTimerRef.current);
+      if (membersTimerRef.current) clearTimeout(membersTimerRef.current);
+    };
+  }, []);
 
   const copyToClipboard = async (text: string, which: "users" | "members") => {
     try {
       await navigator.clipboard.writeText(text || "");
       if (which === "users") {
+        if (usersTimerRef.current) clearTimeout(usersTimerRef.current);
         setCopiedUsers(true);
-        setTimeout(() => setCopiedUsers(false), 2000);
+        usersTimerRef.current = setTimeout(() => setCopiedUsers(false), 2000);
       } else {
+        if (membersTimerRef.current) clearTimeout(membersTimerRef.current);
         setCopiedMembers(true);
-        setTimeout(() => setCopiedMembers(false), 2000);
+        membersTimerRef.current = setTimeout(
+          () => setCopiedMembers(false),
+          2000,
+        );
       }
     } catch (err) {
       // eslint-disable-next-line no-console
