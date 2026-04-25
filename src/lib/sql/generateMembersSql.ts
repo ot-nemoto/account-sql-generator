@@ -5,6 +5,7 @@ import {
   defaultPhone,
   defaultZip,
   q,
+  wrapInTransaction,
 } from "./helpers";
 import type { MemberOptions } from "./types";
 
@@ -46,9 +47,7 @@ export function generateMembersSql(opts: MemberOptions) {
     );
   });
 
-  const memberSql = `START TRANSACTION;
-
-INSERT INTO member (
+  const memberSql = `INSERT INTO member (
   login_id,
   member_type,
   member_attribute,
@@ -94,10 +93,7 @@ INSERT INTO member_role_periods (
   create_date,
   update_date
 ) VALUES
-${periodVals.map((v) => `  ${v}`).join(",\n")};
+${periodVals.map((v) => `  ${v}`).join(",\n")};`;
 
-COMMIT;`;
-
-  // memberSql already contains START/COMMIT to match the original page.tsx output
-  return memberSql;
+  return wrapInTransaction(memberSql);
 }
