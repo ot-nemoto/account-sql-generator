@@ -35,6 +35,9 @@ account-sql-generator/
 │   │   └── globals.css       # Tailwind インポート・グローバルスタイル
 │   ├── components/
 │   │   └── AccountSpreadsheet.tsx  # スプレッドシートエディタコンポーネント
+│   ├── hooks/
+│   │   ├── useSQLGeneration.ts          # SQL生成・データ加工ロジック
+│   │   └── useClipboardAndDownload.ts   # クリップボードコピー・ファイルダウンロード
 │   └── lib/
 │       └── sql/
 │           ├── types.ts             # TypeScript インターフェース定義
