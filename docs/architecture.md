@@ -9,7 +9,7 @@
 | next | 15.5.4 | フレームワーク（App Router） |
 | react | 19.1.0 | UI ライブラリ |
 | react-dom | 19.1.0 | React DOM レンダリング |
-| bcryptjs | ^2.4.3 | パスワードハッシュ（同期処理） |
+| bcryptjs | ^2.4.3 | パスワードハッシュ（Web Worker で非同期実行） |
 
 ### 開発依存
 
@@ -38,6 +38,8 @@ account-sql-generator/
 │   ├── hooks/
 │   │   ├── useSQLGeneration.ts          # SQL生成・データ加工ロジック
 │   │   └── useClipboardAndDownload.ts   # クリップボードコピー・ファイルダウンロード
+│   ├── workers/
+│   │   └── bcryptWorker.ts              # bcrypt ハッシュ化 Web Worker（UI スレッドをブロックしない）
 │   └── lib/
 │       └── sql/
 │           ├── types.ts             # TypeScript インターフェース定義
@@ -82,6 +84,6 @@ account-sql-generator/
 - `use client` ディレクティブが必要なクライアントコンポーネントは明示的に宣言する
 - `useCallback` / `memo` による最適化を積極的に活用する
 
-### bcryptjs（同期処理）
-- `bcrypt.hashSync()` を使用しており、件数が多い場合に UI スレッドをブロックする可能性がある
-- 数百件以上の大量処理が必要な場合は Web Worker またはサーバーサイド移行を検討すること
+### bcryptjs（Web Worker による非同期処理）
+- `src/workers/bcryptWorker.ts` で bcrypt ハッシュ化を Web Worker に委譲し、UI スレッドのブロッキングを解消している
+- Worker は `new Worker(new URL('../workers/bcryptWorker.ts', import.meta.url))` で生成し、webpack が静的エクスポート時にも正しくバンドルする
