@@ -77,20 +77,9 @@ export default function Home() {
                 type="text"
                 value={organizationName}
                 onChange={(e) => setOrganizationName(e.target.value)}
-                onPaste={(e) => {
-                  e.stopPropagation();
-                  try {
-                    const ne = e.nativeEvent as unknown;
-                    if (
-                      typeof ne === "object" &&
-                      ne !== null &&
-                      "stopImmediatePropagation" in ne
-                    )
-                      (
-                        ne as { stopImmediatePropagation: () => void }
-                      ).stopImmediatePropagation();
-                  } catch {}
-                }}
+                // Prevent AccountSpreadsheet's document-level paste handler
+                // from intercepting pastes into this input field.
+                onPaste={(e) => e.nativeEvent.stopPropagation()}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="組織名を入力"
               />
