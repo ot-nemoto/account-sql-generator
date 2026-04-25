@@ -9,7 +9,7 @@
 | next | 15.5.4 | フレームワーク（App Router） |
 | react | 19.1.0 | UI ライブラリ |
 | react-dom | 19.1.0 | React DOM レンダリング |
-| bcryptjs | ^2.4.3 | パスワードハッシュ（同期処理） |
+| bcryptjs | ^2.4.3 | パスワードハッシュ（Web Worker で非同期実行） |
 
 ### 開発依存
 
