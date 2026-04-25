@@ -35,10 +35,9 @@ describe("generateUsersSql()", () => {
     );
   });
 
-  it("users が空の場合は users INSERT を出力しない", () => {
+  it("users が空の場合はコメントのみ返す", () => {
     const sql = generateUsersSql({ ...baseOpts, users: [] });
-    expect(sql).not.toContain("INSERT INTO users");
-    expect(sql).not.toContain("LAST_INSERT_ID");
+    expect(sql).toBe("-- ユーザーがありません");
   });
 
   it("users がある場合は users INSERT と LAST_INSERT_ID が含まれる", () => {
@@ -69,7 +68,7 @@ describe("generateUsersSql()", () => {
     const sql = generateUsersSql({
       ...baseOpts,
       organizationName: "O'Brien School",
-      users: [],
+      users: [teacher],
     });
     expect(sql).toContain("'O''Brien School'");
   });

@@ -9,6 +9,8 @@ export function generateUsersSql(opts: {
 }) {
   const { organizationName, pref, city, users } = opts;
 
+  if (users.length === 0) return "-- ユーザーがありません";
+
   let sql = "";
 
   sql += `INSERT INTO user_group (
