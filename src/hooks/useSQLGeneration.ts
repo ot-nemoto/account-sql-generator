@@ -53,8 +53,8 @@ export function useSQLGeneration({
 
     try {
       const mergedRows = [
-        ...teacherRows.filter((r) => r.userId && r.userId.trim().length > 0),
-        ...studentRows.filter((r) => r.userId && r.userId.trim().length > 0),
+        ...teacherRows.filter((r) => r.userId.trim().length > 0),
+        ...studentRows.filter((r) => r.userId.trim().length > 0),
       ].map((r) => ({
         ...r,
         password: hashPassword(r.password || "password"),
