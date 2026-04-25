@@ -6,8 +6,9 @@ import { generateUsersSql } from "@/lib/sql/generateUsersSql";
 import { toUserRows } from "@/lib/sql/helpers";
 import type { AccountData } from "@/lib/sql/types";
 
-const hashPasswords = (passwords: string[]): Promise<string[]> =>
-  new Promise((resolve, reject) => {
+const hashPasswords = (passwords: string[]): Promise<string[]> => {
+  if (passwords.length === 0) return Promise.resolve([]);
+  return new Promise((resolve, reject) => {
     const worker = new Worker(
       new URL("../workers/bcryptWorker.ts", import.meta.url),
     );
@@ -21,6 +22,7 @@ const hashPasswords = (passwords: string[]): Promise<string[]> =>
     };
     worker.postMessage(passwords);
   });
+};
 
 type UseSQLGenerationProps = {
   organizationName: string;
