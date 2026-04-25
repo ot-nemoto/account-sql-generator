@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import AccountSpreadsheet from "@/components/AccountSpreadsheet";
 import { generateMembersSql } from "@/lib/sql/generateMembersSql";
 import { generateUsersSql } from "@/lib/sql/generateUsersSql";
-import { ROLE_MAP } from "@/lib/sql/types";
+import { toUserRows } from "@/lib/sql/helpers";
 import type { AccountData } from "@/lib/sql/types";
 
 // bcryptjs is used synchronously here (existing behavior). For large workloads consider
@@ -63,11 +63,7 @@ export default function Home() {
         password: hashPassword(r.password || "password"),
       }));
 
-      const allUsers = mergedRows.map((r) => ({
-        userId: r.userId,
-        pwHash: r.password,
-        role: ROLE_MAP[r.role],
-      }));
+      const allUsers = toUserRows(mergedRows);
 
       const usersSql = generateUsersSql({
         organizationName,
