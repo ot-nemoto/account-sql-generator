@@ -30,7 +30,7 @@ describe("generateMembersSql()", () => {
   it("START TRANSACTION と COMMIT でラップされる", () => {
     const result = generateMembersSql({ ...baseOpts, rows: [row] });
     expect(result).toMatch(/^START TRANSACTION;/);
-    expect(result).toMatch(/COMMIT;$/);
+    expect(result).toMatch(/COMMIT;\n$/);
   });
 
   it("member INSERT が含まれる", () => {

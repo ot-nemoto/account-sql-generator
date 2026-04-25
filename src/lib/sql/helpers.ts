@@ -1,6 +1,9 @@
 export const q = (s: string | number | null) =>
   s === null ? "NULL" : `'${String(s).replace(/'/g, "''")}'`;
 
+export const wrapInTransaction = (sql: string): string =>
+  `START TRANSACTION;\n\n${sql}\n\nCOMMIT;\n`;
+
 export const defaultMailDomain = "kankouyohou.com";
 export const defaultZip = "105-0001";
 export const defaultCityName = "港区";

@@ -1,4 +1,4 @@
-import { q } from "./helpers";
+import { q, wrapInTransaction } from "./helpers";
 import type { UserRow } from "./types";
 
 export function generateUsersSql(opts: {
@@ -50,5 +50,5 @@ VALUES
     sql += ";";
   }
 
-  return `START TRANSACTION;\n\n${sql}\n\nCOMMIT;\n`;
+  return wrapInTransaction(sql);
 }
