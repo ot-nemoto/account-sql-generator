@@ -53,11 +53,17 @@ describe("toUserRows()", () => {
   it("teacher は role=1 に変換される", () => {
     const result = toUserRows([base]);
     expect(result).toHaveLength(1);
-    expect(result[0]).toEqual({ userId: "teacher01", pwHash: "$2b$10$hashedpw", role: 1 });
+    expect(result[0]).toEqual({
+      userId: "teacher01",
+      pwHash: "$2b$10$hashedpw",
+      role: 1,
+    });
   });
 
   it("student は role=2 に変換される", () => {
-    const result = toUserRows([{ ...base, id: "s-1", userId: "student01", role: "student" }]);
+    const result = toUserRows([
+      { ...base, id: "s-1", userId: "student01", role: "student" },
+    ]);
     expect(result[0].role).toBe(2);
   });
 
