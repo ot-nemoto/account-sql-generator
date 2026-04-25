@@ -4,11 +4,8 @@ import { useState } from "react";
 import { generateMembersSql } from "@/lib/sql/generateMembersSql";
 import { generateUsersSql } from "@/lib/sql/generateUsersSql";
 import { toUserRows } from "@/lib/sql/helpers";
+import bcrypt from "bcryptjs";
 import type { AccountData } from "@/lib/sql/types";
-
-// bcryptjs is used synchronously here (existing behavior). For large workloads consider
-// moving hashing into a Web Worker or to the server.
-const bcrypt = require("bcryptjs");
 
 const hashPassword = (pw: string): string => {
   const salt = bcrypt.genSaltSync(10);
