@@ -26,9 +26,8 @@ export function generateUsersSql(opts: {
 ) VALUES
   (${q(organizationName)}, ${pref}, ${city}, 1, NOW(), 'admin', NOW(), 'admin', 0);\n\n`;
 
-  if (users.length > 0) {
-    sql += "SET @user_group_id = LAST_INSERT_ID();\n\n";
-    sql += `INSERT INTO users (
+  sql += "SET @user_group_id = LAST_INSERT_ID();\n\n";
+  sql += `INSERT INTO users (
   user_name,
   password,
   role_id,
@@ -44,13 +43,12 @@ export function generateUsersSql(opts: {
 VALUES
 `;
 
-    const vals = users.map(
-      (u) =>
-        `  (${q(u.userId)}, ${q(u.pwHash)}, ${u.role}, @user_group_id, 1, NOW(), 'admin', NOW(), 'admin', NULL, 0)`,
-    );
-    sql += vals.join(",\n");
-    sql += ";";
-  }
+  const vals = users.map(
+    (u) =>
+      `  (${q(u.userId)}, ${q(u.pwHash)}, ${u.role}, @user_group_id, 1, NOW(), 'admin', NOW(), 'admin', NULL, 0)`,
+  );
+  sql += vals.join(",\n");
+  sql += ";";
 
   return wrapInTransaction(sql);
 }
