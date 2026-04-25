@@ -9,6 +9,8 @@ import {
 } from "./helpers";
 import type { MemberOptions } from "./types";
 
+const MEMBER_ROLE_PERIOD_STATUS = 2;
+
 export function generateMembersSql(opts: MemberOptions) {
   const { organizationName, pref, city, rows, startDate, endDate, mailDomain } =
     opts;
@@ -43,7 +45,7 @@ export function generateMembersSql(opts: MemberOptions) {
       `(${base}, 'USER', NOW(), NOW()), (${base}, 'GENERAL', NOW(), NOW())`,
     );
     periodVals.push(
-      `(${base}, 'GENERAL', ${q(periodFrom)}, ${q(periodTo)}, 2, NOW(), NOW())`,
+      `(${base}, 'GENERAL', ${q(periodFrom)}, ${q(periodTo)}, ${MEMBER_ROLE_PERIOD_STATUS}, NOW(), NOW())`,
     );
   });
 
