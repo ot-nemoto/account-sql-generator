@@ -2,9 +2,9 @@
 
 ![CI](https://github.com/ot-nemoto/account-sql-generator/actions/workflows/ci.yml/badge.svg)
 ![Version](https://img.shields.io/github/package-json/v/ot-nemoto/account-sql-generator)
-![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
+![Next.js](https://img.shields.io/github/package-json/dependency-version/ot-nemoto/account-sql-generator/next?logo=next.js&label=Next.js&color=black)
+![TypeScript](https://img.shields.io/github/package-json/dependency-version/ot-nemoto/account-sql-generator/dev/typescript?logo=typescript&logoColor=white&label=TypeScript&color=3178C6)
+![Tailwind CSS](https://img.shields.io/github/package-json/dependency-version/ot-nemoto/account-sql-generator/dev/tailwindcss?logo=tailwindcss&logoColor=white&label=Tailwind%20CSS&color=06B6D4)
 ![License](https://img.shields.io/github/license/ot-nemoto/account-sql-generator)
 
 教育機関向けに、教師・生徒のアカウントを一括登録するための SQL INSERT 文を生成する Web ツールです。
