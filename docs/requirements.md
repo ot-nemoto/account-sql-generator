@@ -31,7 +31,7 @@
 | F-13 | 「SQL生成」ボタンで `users` 系・`member` 系 SQL を同時に生成できる |
 | F-14 | パスワードは SQL 生成時に bcrypt（salt rounds: 10）でハッシュ化される |
 | F-15 | パスワード未入力時はデフォルト値 `password` をハッシュ化する |
-| F-16 | 生成 SQL は `START TRANSACTION` / `COMMIT` でラップされる |
+| F-16 | 生成 SQL は `START TRANSACTION` / `COMMIT` でラップされる（ただしユーザー・メンバーが 0 件の場合はコメントのみ出力） |
 | F-17 | 教師は `role_id = 1`、生徒は `role_id = 2` で挿入される |
 | F-18 | メールアドレスは `{ユーザーID}@{mailDomain}` で自動生成される |
 

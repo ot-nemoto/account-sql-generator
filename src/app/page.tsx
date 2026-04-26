@@ -1,14 +1,10 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import type { AccountData } from "@/components/AccountSpreadsheet";
 import AccountSpreadsheet from "@/components/AccountSpreadsheet";
-import { generateMembersSql } from "@/lib/sql/generateMembersSql";
-import { generateUsersSql } from "@/lib/sql/generateUsersSql";
-
-// bcryptjs is used synchronously here (existing behavior). For large workloads consider
-// moving hashing into a Web Worker or to the server.
-const bcrypt = require("bcryptjs");
+import { useClipboardAndDownload } from "@/hooks/useClipboardAndDownload";
+import { useSQLGeneration } from "@/hooks/useSQLGeneration";
+import type { AccountData } from "@/lib/sql/types";
 
 export default function Home() {
   const [organizationName, setOrganizationName] = useState("");
@@ -18,12 +14,20 @@ export default function Home() {
   const [endDate, setEndDate] = useState("");
   const [teacherRows, setTeacherRows] = useState<AccountData[]>([]);
   const [studentRows, setStudentRows] = useState<AccountData[]>([]);
-  const [generatedSQL, setGeneratedSQL] = useState("");
-  const [generatedMemberSQL, setGeneratedMemberSQL] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [copiedUsers, setCopiedUsers] = useState(false);
-  const [copiedMembers, setCopiedMembers] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const { generatedSQL, generatedMemberSQL, isGenerating, errorMessage, generateSQL } =
+    useSQLGeneration({
+      organizationName,
+      prefCode,
+      municipalityCode,
+      startDate,
+      endDate,
+      teacherRows,
+      studentRows,
+    });
+
+  const { copiedUsers, copiedMembers, copyToClipboard, downloadSqlFile } =
+    useClipboardAndDownload(organizationName);
 
   const handleDataChange = useCallback(
     (teacher: AccountData[], student: AccountData[]) => {
@@ -32,132 +36,6 @@ export default function Home() {
     },
     [],
   );
-
-  const hashPassword = (pw: string) => {
-    const salt = bcrypt.genSaltSync(10);
-    return bcrypt.hashSync(pw, salt);
-  };
-
-  const generateSQL = async () => {
-    if (!organizationName) {
-      setGeneratedSQL("-- 組織名を入力してください");
-      setGeneratedMemberSQL("");
-      return;
-    }
-
-    const pref = parseInt(prefCode || "0", 10);
-    const city = parseInt(municipalityCode || "0", 10);
-
-    setIsGenerating(true);
-    setErrorMessage(null);
-    // Allow spinner to render before doing synchronous CPU work.
-    await new Promise((res) => setTimeout(res, 0));
-
-    try {
-      const teachersUsers = teacherRows
-        .filter((r) => r.userId && r.userId.trim().length > 0)
-        .map((r) => ({
-          userId: r.userId,
-          pwHash: hashPassword(r.password || "password"),
-          role: 1,
-        }));
-
-      const studentsUsers = studentRows
-        .filter((r) => r.userId && r.userId.trim().length > 0)
-        .map((r) => ({
-          userId: r.userId,
-          pwHash: hashPassword(r.password || "password"),
-          role: 2,
-        }));
-
-      const allUsers = [...teachersUsers, ...studentsUsers];
-
-      const usersSql = generateUsersSql({
-        organizationName,
-        pref,
-        city,
-        users: allUsers,
-      });
-      setGeneratedSQL(usersSql || "-- No users found");
-
-      const mergedRows = [
-        ...teacherRows.filter((r) => r.userId && r.userId.trim().length > 0),
-        ...studentRows.filter((r) => r.userId && r.userId.trim().length > 0),
-      ].map((r) => ({
-        ...r,
-        password: hashPassword(r.password || "password"),
-      }));
-
-      const membersSql = generateMembersSql({
-        organizationName,
-        pref,
-        city,
-        rows: mergedRows,
-        startDate,
-        endDate,
-        mailDomain: "kankouyohou.com",
-      });
-      setGeneratedMemberSQL(membersSql || "-- No members found");
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error("generateSQL failed", err);
-      setErrorMessage(
-        "処理中にエラーが発生しました。詳細はコンソールを確認してください。",
-      );
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const copyToClipboard = async (text: string, which: "users" | "members") => {
-    try {
-      await navigator.clipboard.writeText(text || "");
-      if (which === "users") {
-        setCopiedUsers(true);
-        setTimeout(() => setCopiedUsers(false), 2000);
-      } else {
-        setCopiedMembers(true);
-        setTimeout(() => setCopiedMembers(false), 2000);
-      }
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error("copy failed", err);
-    }
-  };
-
-  // download given text as a .sql file. filename uses organizationName fallback.
-  const downloadSqlFile = (text: string, which: "users" | "members") => {
-    try {
-      const blob = new Blob([text || ""], {
-        type: "application/sql;charset=utf-8",
-      });
-      const url = URL.createObjectURL(blob);
-      // Build filename base: remove half-width/全角 spaces and all symbols.
-      // Keep only Unicode letters and numbers so Japanese stays but spaces/symbols are removed.
-      const filenameBase =
-        organizationName && organizationName.trim().length > 0
-          ? (() => {
-              const cleaned = organizationName
-                .trim()
-                // remove everything except Unicode letters and numbers
-                .replace(/[^\p{L}\p{N}]/gu, "")
-                .slice(0, 100);
-              return cleaned.length > 0 ? cleaned : "sql_export";
-            })()
-          : "sql_export";
-      const filename = `${filenameBase}_${which}.sql`;
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error("download failed", err);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 relative">
@@ -199,20 +77,9 @@ export default function Home() {
                 type="text"
                 value={organizationName}
                 onChange={(e) => setOrganizationName(e.target.value)}
-                onPaste={(e) => {
-                  e.stopPropagation();
-                  try {
-                    const ne = e.nativeEvent as unknown;
-                    if (
-                      typeof ne === "object" &&
-                      ne !== null &&
-                      "stopImmediatePropagation" in ne
-                    )
-                      (
-                        ne as { stopImmediatePropagation: () => void }
-                      ).stopImmediatePropagation();
-                  } catch {}
-                }}
+                // Prevent AccountSpreadsheet's document-level paste handler
+                // from intercepting pastes into this input field.
+                onPaste={(e) => e.nativeEvent.stopPropagation()}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="組織名を入力"
               />

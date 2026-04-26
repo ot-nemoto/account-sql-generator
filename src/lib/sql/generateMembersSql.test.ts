@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { defaultMailDomain } from "./helpers";
 import { generateMembersSql } from "./generateMembersSql";
-import type { MemberOptions } from "./types";
+import type { AccountData, MemberOptions } from "./types";
 
 const baseOpts: MemberOptions = {
   organizationName: "テスト学校",
@@ -13,7 +13,7 @@ const baseOpts: MemberOptions = {
   mailDomain: "example.com",
 };
 
-const row = {
+const row: AccountData = {
   id: "t-1",
   userId: "teacher01",
   userName: "山田太郎",
@@ -30,7 +30,7 @@ describe("generateMembersSql()", () => {
   it("START TRANSACTION と COMMIT でラップされる", () => {
     const result = generateMembersSql({ ...baseOpts, rows: [row] });
     expect(result).toMatch(/^START TRANSACTION;/);
-    expect(result).toMatch(/COMMIT;$/);
+    expect(result).toMatch(/COMMIT;\n$/);
   });
 
   it("member INSERT が含まれる", () => {
@@ -102,5 +102,14 @@ describe("generateMembersSql()", () => {
     const result = generateMembersSql({ ...baseOpts, rows: [row, row2] });
     expect(result).toContain("@first_member_id + 0");
     expect(result).toContain("@first_member_id + 1");
+  });
+
+  it("userId のシングルクォートがエスケープされる", () => {
+    const result = generateMembersSql({
+      ...baseOpts,
+      rows: [{ ...row, userId: "o'brien" }],
+    });
+    expect(result).toContain("'o''brien'");
+    expect(result).toContain("o''brien@example.com");
   });
 });

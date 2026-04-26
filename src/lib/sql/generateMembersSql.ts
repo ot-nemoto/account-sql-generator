@@ -5,8 +5,11 @@ import {
   defaultPhone,
   defaultZip,
   q,
+  wrapInTransaction,
 } from "./helpers";
 import type { MemberOptions } from "./types";
+
+const MEMBER_ROLE_PERIOD_STATUS = 2;
 
 export function generateMembersSql(opts: MemberOptions) {
   const { organizationName, pref, city, rows, startDate, endDate, mailDomain } =
@@ -27,13 +30,13 @@ export function generateMembersSql(opts: MemberOptions) {
   const periodVals: string[] = [];
 
   rows.forEach((r, idx) => {
-    const loginId = r.userId.replace(/'/g, "''");
+    const loginId = r.userId;
     const memberName = r.userName?.trim() ?? "";
     const pwHash = r.password ? r.password : ""; // caller should provide hashed pw if desired
     const mail = `${loginId}@${md}`;
 
     memberVals.push(
-      `(${q(loginId)}, '0', '0', ${q(memberName)}, ${q(organizationName)}, '${zip}', ${pref}, ${q(cityName)}, ${q(address)}, ${q(phone)}, ${q(mail)}, NOW(), '${pwHash}', ${pref}, ${city}, NULL, '0', ${q(expiration)}, '0', NOW(), NOW(), NULL, '0')`,
+      `(${q(loginId)}, '0', '0', ${q(memberName)}, ${q(organizationName)}, '${zip}', ${pref}, ${q(cityName)}, ${q(address)}, ${q(phone)}, ${q(mail)}, NOW(), ${q(pwHash)}, ${pref}, ${city}, NULL, '0', ${q(expiration)}, '0', NOW(), NOW(), NULL, '0')`,
     );
 
     const base = `(@first_member_id + ${idx})`;
@@ -42,13 +45,11 @@ export function generateMembersSql(opts: MemberOptions) {
       `(${base}, 'USER', NOW(), NOW()), (${base}, 'GENERAL', NOW(), NOW())`,
     );
     periodVals.push(
-      `(${base}, 'GENERAL', ${q(periodFrom)}, ${q(periodTo)}, 2, NOW(), NOW())`,
+      `(${base}, 'GENERAL', ${q(periodFrom)}, ${q(periodTo)}, ${MEMBER_ROLE_PERIOD_STATUS}, NOW(), NOW())`,
     );
   });
 
-  const memberSql = `START TRANSACTION;
-
-INSERT INTO member (
+  const memberSql = `INSERT INTO member (
   login_id,
   member_type,
   member_attribute,
@@ -94,10 +95,7 @@ INSERT INTO member_role_periods (
   create_date,
   update_date
 ) VALUES
-${periodVals.map((v) => `  ${v}`).join(",\n")};
+${periodVals.map((v) => `  ${v}`).join(",\n")};`;
 
-COMMIT;`;
-
-  // memberSql already contains START/COMMIT to match the original page.tsx output
-  return memberSql;
+  return wrapInTransaction(memberSql);
 }

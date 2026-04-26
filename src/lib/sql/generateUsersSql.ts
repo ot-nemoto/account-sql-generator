@@ -1,4 +1,4 @@
-import { q } from "./helpers";
+import { q, wrapInTransaction } from "./helpers";
 import type { UserRow } from "./types";
 
 export function generateUsersSql(opts: {
@@ -8,7 +8,8 @@ export function generateUsersSql(opts: {
   users: UserRow[];
 }) {
   const { organizationName, pref, city, users } = opts;
-  const orgNameEsc = organizationName.replace(/'/g, "''");
+
+  if (users.length === 0) return "-- ユーザーがありません";
 
   let sql = "";
 
@@ -23,11 +24,10 @@ export function generateUsersSql(opts: {
   updated_by,
   delete_flag
 ) VALUES
-  ('${orgNameEsc}', ${pref}, ${city}, 1, NOW(), 'admin', NOW(), 'admin', 0);\n\n`;
+  (${q(organizationName)}, ${pref}, ${city}, 1, NOW(), 'admin', NOW(), 'admin', 0);\n\n`;
 
-  if (users.length > 0) {
-    sql += "SET @user_group_id = LAST_INSERT_ID();\n\n";
-    sql += `INSERT INTO users (
+  sql += "SET @user_group_id = LAST_INSERT_ID();\n\n";
+  sql += `INSERT INTO users (
   user_name,
   password,
   role_id,
@@ -43,13 +43,12 @@ export function generateUsersSql(opts: {
 VALUES
 `;
 
-    const vals = users.map(
-      (u) =>
-        `  (${q(u.userId)}, ${q(u.pwHash)}, ${u.role}, @user_group_id, 1, NOW(), 'admin', NOW(), 'admin', NULL, 0)`,
-    );
-    sql += vals.join(",\n");
-    sql += ";";
-  }
+  const vals = users.map(
+    (u) =>
+      `  (${q(u.userId)}, ${q(u.pwHash)}, ${u.role}, @user_group_id, 1, NOW(), 'admin', NOW(), 'admin', NULL, 0)`,
+  );
+  sql += vals.join(",\n");
+  sql += ";";
 
-  return `START TRANSACTION;\n\n${sql}\n\nCOMMIT;\n`;
+  return wrapInTransaction(sql);
 }

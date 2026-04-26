@@ -1,4 +1,13 @@
-import type { AccountData } from "@/components/AccountSpreadsheet";
+export const ROLE_MAP = { teacher: 1, student: 2 } as const;
+export type RoleLabel = keyof typeof ROLE_MAP;
+
+export interface AccountData {
+  id: string;
+  userId: string;
+  userName: string;
+  password: string;
+  role: RoleLabel;
+}
 
 export type UserRow = {
   userId: string;
