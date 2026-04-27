@@ -50,8 +50,8 @@ account-sql-generator/
 ├── .github/
 │   ├── dependabot.yml        # Dependabot 設定（devcontainers + npm 週次チェック）
 │   └── workflows/
-│       ├── deploy.yml        # GitHub Pages デプロイ
-│       └── bump-version.yml  # SemVer バージョンバンプ
+│       ├── deploy-github-pages.yml  # GitHub Pages デプロイ
+│       └── bump-version.yml         # SemVer バージョンバンプ
 ├── .devcontainer/            # Dev Container 設定
 ├── next.config.ts            # Next.js 設定（静的エクスポート対応）
 ├── tsconfig.json             # TypeScript 設定
