@@ -23,7 +23,7 @@
     "react-dom": "19.2.5"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.12",
+    "@biomejs/biome": "2.4.13",
     "@vitest/coverage-v8": "^4",
     "vitest": "^4",
     "@tailwindcss/postcss": "^4",
