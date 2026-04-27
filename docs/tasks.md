@@ -6,4 +6,4 @@
 
 | フェーズ | 内容 | Milestone |
 |---------|------|-----------|
-| Phase 1 | 初期整備（CI・ドキュメント） | ― |
+| Phase 1 | 初期整備（CI・ドキュメント・コア機能実装） | [Phase 1](https://github.com/ot-nemoto/account-sql-generator/milestone/1) |

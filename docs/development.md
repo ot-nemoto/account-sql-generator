@@ -60,7 +60,7 @@ npm run dev
 
 ### GitHub Pages（静的サイト）
 
-`master` ブランチへのプッシュで `.github/workflows/deploy.yml` が自動実行され、GitHub Pages にデプロイされる。
+`master` ブランチへのプッシュで `.github/workflows/deploy-github-pages.yml` が自動実行され、GitHub Pages にデプロイされる。
 
 - デプロイ先: `https://ot-nemoto.github.io/account-sql-generator/`
 - ビルドコマンド: `npm run build:static`
