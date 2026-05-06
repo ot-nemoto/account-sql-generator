@@ -1,6 +1,6 @@
 {
   "name": "account-sql-generator",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -23,7 +23,7 @@
     "react-dom": "19.2.5"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.13",
+    "@biomejs/biome": "2.4.14",
     "@vitest/coverage-v8": "^4",
     "vitest": "^4",
     "@tailwindcss/postcss": "^4",
