@@ -6,6 +6,9 @@ updates:
       interval: weekly
       day: monday
     target-branch: develop
+    ignore:
+      # bcryptjs は $2a ハッシュ出力維持のため v2.4.3 に固定（T22）
+      - dependency-name: bcryptjs
     groups:
       production-dependencies:
         dependency-type: production
