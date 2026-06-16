@@ -6,23 +6,26 @@
 
 | パッケージ | バージョン | 用途 |
 |-----------|-----------|------|
-| next | 15.5.4 | フレームワーク（App Router） |
-| react | 19.1.0 | UI ライブラリ |
-| react-dom | 19.1.0 | React DOM レンダリング |
+| next | 16.2.7 | フレームワーク（App Router） |
+| react | 19.2.7 | UI ライブラリ |
+| react-dom | 19.2.7 | React DOM レンダリング |
 | bcryptjs | 2.4.3 | パスワードハッシュ（Web Worker で非同期実行）※バージョン固定（$2a 出力維持のため） |
 
 ### 開発依存
 
 | パッケージ | バージョン | 用途 |
 |-----------|-----------|------|
-| typescript | ^5 | 型安全 |
+| typescript | ^6 | 型安全 |
+| @types/bcryptjs | ^2 | bcryptjs 型定義 |
 | @types/react | ^19 | React 型定義 |
 | @types/react-dom | ^19 | React DOM 型定義 |
-| @types/node | ^20 | Node.js 型定義 |
+| @types/node | ^25 | Node.js 型定義 |
 | tailwindcss | ^4 | ユーティリティファースト CSS |
 | @tailwindcss/postcss | ^4 | Tailwind v4 の PostCSS プラグイン |
-| @biomejs/biome | 2.2.0 | リント・フォーマット |
-| cross-env | ^7.0.3 | クロスプラットフォーム環境変数 |
+| @biomejs/biome | 2.5.0 | リント・フォーマット |
+| @vitest/coverage-v8 | ^4 | テストカバレッジ |
+| cross-env | ^10.1.0 | クロスプラットフォーム環境変数 |
+| vitest | ^4 | テストランナー |
 
 ## ディレクトリ構成
 
