@@ -1,8 +1,9 @@
 {
   "name": "account-sql-generator",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "private": true,
   "scripts": {
+    "prepare": "biome migrate --write",
     "dev": "next dev",
     "build": "next build",
     "build:static": "cross-env BUILD_MODE=static next build",
@@ -23,12 +24,12 @@
     "react-dom": "19.2.7"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.0",
+    "@biomejs/biome": "2.5.1",
     "@vitest/coverage-v8": "^4",
     "vitest": "^4",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2",
-    "@types/node": "^25",
+    "@types/node": "^26",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "cross-env": "^10.1.0",
