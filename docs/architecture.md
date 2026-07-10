@@ -2,66 +2,26 @@
 
 ## 技術スタック
 
+バージョンは `package.json` を参照すること。
+
 ### 本番依存
 
-| パッケージ | バージョン | 用途 |
-|-----------|-----------|------|
-| next | 16.2.7 | フレームワーク（App Router） |
-| react | 19.2.7 | UI ライブラリ |
-| react-dom | 19.2.7 | React DOM レンダリング |
-| bcryptjs | 2.4.3 | パスワードハッシュ（Web Worker で非同期実行）※バージョン固定（$2a 出力維持のため） |
+| パッケージ | 用途 |
+|-----------|------|
+| next | フレームワーク（App Router） |
+| react / react-dom | UI ライブラリ |
+| bcryptjs | パスワードハッシュ（Web Worker で非同期実行）※v2.4.3 に固定（$2a 出力維持のため） |
 
 ### 開発依存
 
-| パッケージ | バージョン | 用途 |
-|-----------|-----------|------|
-| typescript | ^6 | 型安全 |
-| @types/bcryptjs | ^2 | bcryptjs 型定義 |
-| @types/react | ^19 | React 型定義 |
-| @types/react-dom | ^19 | React DOM 型定義 |
-| @types/node | ^25 | Node.js 型定義 |
-| tailwindcss | ^4 | ユーティリティファースト CSS |
-| @tailwindcss/postcss | ^4 | Tailwind v4 の PostCSS プラグイン |
-| @biomejs/biome | 2.5.0 | リント・フォーマット |
-| @vitest/coverage-v8 | ^4 | テストカバレッジ |
-| cross-env | ^10.1.0 | クロスプラットフォーム環境変数 |
-| vitest | ^4 | テストランナー |
-
-## ディレクトリ構成
-
-```
-account-sql-generator/
-├── src/
-│   ├── app/
-│   │   ├── page.tsx          # メインページ（状態管理・SQL生成オーケストレーション）
-│   │   ├── layout.tsx        # ルートレイアウト（メタデータ・HTML設定）
-│   │   └── globals.css       # Tailwind インポート・グローバルスタイル
-│   ├── components/
-│   │   └── AccountSpreadsheet.tsx  # スプレッドシートエディタコンポーネント
-│   ├── hooks/
-│   │   ├── useSQLGeneration.ts          # SQL生成・データ加工ロジック
-│   │   └── useClipboardAndDownload.ts   # クリップボードコピー・ファイルダウンロード
-│   ├── workers/
-│   │   └── bcryptWorker.ts              # bcrypt ハッシュ化 Web Worker（UI スレッドをブロックしない）
-│   └── lib/
-│       └── sql/
-│           ├── types.ts             # TypeScript インターフェース定義
-│           ├── helpers.ts           # 定数・SQL エスケープユーティリティ
-│           ├── generateUsersSql.ts  # users 系 SQL ビルダー
-│           └── generateMembersSql.ts # member 系 SQL ビルダー
-├── docs/                     # プロジェクトドキュメント
-├── .github/
-│   ├── dependabot.yml        # Dependabot 設定（devcontainers + npm 週次チェック）
-│   └── workflows/
-│       ├── deploy-github-pages.yml  # GitHub Pages デプロイ
-│       └── bump-version.yml         # SemVer バージョンバンプ
-├── .devcontainer/            # Dev Container 設定
-├── next.config.ts            # Next.js 設定（静的エクスポート対応）
-├── tsconfig.json             # TypeScript 設定
-├── biome.json                # Biome リント・フォーマット設定
-├── postcss.config.mjs        # PostCSS 設定
-└── package.json
-```
+| パッケージ | 用途 |
+|-----------|------|
+| typescript | 型安全 |
+| @types/bcryptjs / @types/react / @types/react-dom / @types/node | 型定義 |
+| tailwindcss / @tailwindcss/postcss | ユーティリティファースト CSS（v4） |
+| @biomejs/biome | リント・フォーマット |
+| vitest / @vitest/coverage-v8 | テストランナー・カバレッジ |
+| cross-env | クロスプラットフォーム環境変数 |
 
 ## 環境変数
 

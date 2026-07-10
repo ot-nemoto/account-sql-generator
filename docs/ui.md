@@ -60,53 +60,6 @@ graph TD
 | 生成完了 | SQL出力エリアに生成結果を表示、コピー・ダウンロードボタンが有効化 |
 | エラー | エラーメッセージを表示 |
 
-## コンポーネント一覧
-
-### `page.tsx`（メインページ）
-
-| 状態変数 | 型 | 説明 |
-|----------|-----|------|
-| `organizationName` | `string` | 組織名 |
-| `prefCode` | `string` | 都道府県コード（デフォルト: `"13"`） |
-| `municipalityCode` | `string` | 市区町村コード（デフォルト: `"13101"`） |
-| `startDate` | `string` | 利用開始日（YYYY-MM-DD） |
-| `endDate` | `string` | 利用終了日（YYYY-MM-DD） |
-| `teacherRows` | `AccountData[]` | 教師アカウント一覧 |
-| `studentRows` | `AccountData[]` | 生徒アカウント一覧 |
-| `generatedSQL` | `string` | 生成された users 系 SQL |
-| `generatedMemberSQL` | `string` | 生成された member 系 SQL |
-| `isGenerating` | `boolean` | SQL生成中フラグ |
-| `copiedUsers` | `boolean` | users SQL コピー済みフィードバック |
-| `copiedMembers` | `boolean` | members SQL コピー済みフィードバック |
-| `errorMessage` | `string \| null` | エラーメッセージ |
-
-### `AccountSpreadsheet.tsx`
-
-教師・生徒のアカウント情報を入力するスプレッドシート風コンポーネント。
-
-| Props | 型 | 説明 |
-|-------|----|------|
-| `onDataChange` | `(teachers: AccountData[], students: AccountData[]) => void` | データ変更時のコールバック（100ms デバウンス） |
-
-#### サブコンポーネント
-
-| コンポーネント | 説明 |
-|---------------|------|
-| `RoleGridComponent`（memo） | 教師または生徒の1セクション（テーブル + 操作ボタン）を描画 |
-| `Row`（memo） | 1アカウントの入力行（ユーザーID・ユーザー名・パスワード・削除ボタン） |
-
-#### `AccountData` インターフェース
-
-```typescript
-interface AccountData {
-  id: string;       // 行の一意識別子（t-1, t-2, s-1, s-2 など）
-  userId: string;   // ログインID（SQL の login_id に使用）
-  userName: string; // 表示名
-  password: string; // 平文パスワード（SQL生成時にハッシュ化）
-  role: string;     // "teacher" | "student"
-}
-```
-
 ## UI 規約
 
 | 項目 | 規約 |

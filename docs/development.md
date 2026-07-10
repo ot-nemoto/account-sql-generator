@@ -31,17 +31,6 @@ npm run dev
 
 `.env` ファイルは不要。
 
-## 開発スクリプト
-
-| コマンド | 説明 |
-|---------|------|
-| `npm run dev` | 開発サーバー起動（ホットリロード、http://localhost:3000） |
-| `npm run build` | 本番ビルド（`.next/` に出力） |
-| `npm run build:static` | 静的エクスポートビルド（`out/` に出力） |
-| `npm run start` | ビルド済みアプリを起動（`npm run build` 後に実行） |
-| `npm run lint` | Biome によるリント |
-| `npm run format` | Biome による自動フォーマット |
-
 ## コードの変更・カスタマイズ
 
 ### SQL の固定値を変更する
