@@ -9,6 +9,10 @@ updates:
     ignore:
       # bcryptjs は $2a ハッシュ出力維持のため v2.4.3 に固定（T22）
       - dependency-name: bcryptjs
+      # TypeScript 7 はネイティブ版（Go 実装）で Next.js 16 の build と非互換。
+      # Next.js がネイティブ版に対応するまでメジャー更新を保留する（T30）。
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
     groups:
       production-dependencies:
         dependency-type: production
