@@ -9,6 +9,9 @@ updates:
     ignore:
       # bcryptjs は $2a ハッシュ出力維持のため v2.4.3 に固定（T22）
       - dependency-name: bcryptjs
+      # typescript v7 は tsgo(ネイティブ版)で next build が失敗するためメジャー更新を除外（T30）
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
     groups:
       production-dependencies:
         dependency-type: production
