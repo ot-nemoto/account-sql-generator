@@ -43,4 +43,6 @@ next-env.d.ts
 # local tools
 .claude/*
 !.claude/common-rules.md
+!.claude/api-rules.md
+!.claude/project.md
 .playwright-mcp/
