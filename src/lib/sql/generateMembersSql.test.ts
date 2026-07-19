@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { defaultMailDomain } from "./helpers";
 import { generateMembersSql } from "./generateMembersSql";
+import { defaultMailDomain } from "./helpers";
 import type { AccountData, MemberOptions } from "./types";
 
 const baseOpts: MemberOptions = {

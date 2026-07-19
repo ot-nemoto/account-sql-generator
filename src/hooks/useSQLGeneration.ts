@@ -61,7 +61,6 @@ export function useSQLGeneration({
     setIsGenerating(true);
     setErrorMessage(null);
 
-
     try {
       const filteredRows = [
         ...teacherRows.filter((r) => r.userId.trim().length > 0),
@@ -104,5 +103,11 @@ export function useSQLGeneration({
     }
   };
 
-  return { generatedSQL, generatedMemberSQL, isGenerating, errorMessage, generateSQL };
+  return {
+    generatedSQL,
+    generatedMemberSQL,
+    isGenerating,
+    errorMessage,
+    generateSQL,
+  };
 }
