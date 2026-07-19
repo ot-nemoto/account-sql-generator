@@ -15,16 +15,21 @@ export default function Home() {
   const [teacherRows, setTeacherRows] = useState<AccountData[]>([]);
   const [studentRows, setStudentRows] = useState<AccountData[]>([]);
 
-  const { generatedSQL, generatedMemberSQL, isGenerating, errorMessage, generateSQL } =
-    useSQLGeneration({
-      organizationName,
-      prefCode,
-      municipalityCode,
-      startDate,
-      endDate,
-      teacherRows,
-      studentRows,
-    });
+  const {
+    generatedSQL,
+    generatedMemberSQL,
+    isGenerating,
+    errorMessage,
+    generateSQL,
+  } = useSQLGeneration({
+    organizationName,
+    prefCode,
+    municipalityCode,
+    startDate,
+    endDate,
+    teacherRows,
+    studentRows,
+  });
 
   const { copiedUsers, copiedMembers, copyToClipboard, downloadSqlFile } =
     useClipboardAndDownload(organizationName);

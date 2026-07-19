@@ -1,5 +1,5 @@
-import { ROLE_MAP } from "./types";
 import type { AccountData, UserRow } from "./types";
+import { ROLE_MAP } from "./types";
 
 export const q = (s: string | number | null) =>
   s === null ? "NULL" : `'${String(s).replace(/'/g, "''")}'`;
