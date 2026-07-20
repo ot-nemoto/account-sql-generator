@@ -2,6 +2,7 @@
 
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import type { AccountData, RoleLabel } from "@/lib/sql/types";
+
 export type { AccountData } from "@/lib/sql/types";
 
 const COL_KEYS: (keyof AccountData)[] = ["userId", "userName", "password"];
