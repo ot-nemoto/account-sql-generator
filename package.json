@@ -1,6 +1,6 @@
 {
   "name": "account-sql-generator",
-  "version": "0.4.24",
+  "version": "0.4.25",
   "private": true,
   "scripts": {
     "prepare": "biome migrate --write",
@@ -19,14 +19,14 @@
   },
   "dependencies": {
     "bcryptjs": "2.4.3",
-    "next": "16.3.3",
+    "next": "16.3.4",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.11",
-    "@vitest/coverage-v8": "^4",
-    "vitest": "^4",
+    "@biomejs/biome": "2.5.12",
+    "@vitest/coverage-v8": "^5",
+    "vitest": "^5",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2",
     "@types/node": "^26",
